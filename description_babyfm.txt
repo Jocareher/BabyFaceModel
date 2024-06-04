@@ -1,0 +1,155 @@
+Functions Used in syntheric_babies.m
+
+"""
+Step-by-Step Explanation
+
+1. Anonymous Function Definition
+rsp = @(x) reshape(x, 3,[])
+- This defines an anonymous function `rsp` that reshapes an input vector `x` into a 3xN matrix, where N is determined by the length of `x`.
+
+2. Load Baby Model
+addpath(genpath('Matlab_utils'))
+load('BabyFaceModel.mat');
+FaceModel = BabyFaceModel;
+- `addpath(genpath('Matlab_utils'))`: Adds all subdirectories under 'Matlab_utils' to the search path.
+- `load('BabyFaceModel.mat')`: Loads the MAT-file `BabyFaceModel.mat` which contains the baby face model data.
+- `FaceModel = BabyFaceModel;`: Assigns the loaded data to the variable `FaceModel`.
+
+3. Set Morphable Model Characteristics
+options.var = 98;
+var = '_var_98';
+options.chi_squared = 0.9999999999999999;
+options.ndims = find(cumsum(FaceModel.pctVar_per_eigen) > options.var, 1);
+options.shapeMU = reshape(FaceModel.refShape, 1, []);
+options.lmks_vertsIND = FaceModel.landmark_verts;
+options.shapeEV = FaceModel.eigenValues(1:options.ndims);
+options.shapePC = FaceModel.eigenFunctions(:, 1:options.ndims);
+options.trilist = FaceModel.triang;
+options.meanDeformation = FaceModel.meanDeformation;
+options.scale_factor = sqrt(size(FaceModel.refShape, 2));
+- `options.var = 98;`: Sets the variance for the model to 98%.
+- `var = '_var_98';`: A string variable representing the variance.
+- `options.chi_squared = 0.9999999999999999;`: Sets the chi-squared value for the model.
+- `options.ndims = find(cumsum(FaceModel.pctVar_per_eigen) > options.var, 1);`: Determines the number of dimensions needed to reach the specified variance.
+- `options.shapeMU = reshape(FaceModel.refShape, 1, []);`: Reshapes the reference shape into a 1xN vector.
+- `options.lmks_vertsIND = FaceModel.landmark_verts;`: Gets the landmark vertices indices from the model.
+- `options.shapeEV = FaceModel.eigenValues(1:options.ndims);`: Gets the eigenvalues up to the specified number of dimensions.
+- `options.shapePC = FaceModel.eigenFunctions(:, 1:options.ndims);`: Gets the eigenfunctions up to the specified number of dimensions.
+- `options.trilist = FaceModel.triang;`: Gets the triangulation of the face model.
+- `options.meanDeformation = FaceModel.meanDeformation;`: Sets the mean deformation from the model.
+- `options.scale_factor = sqrt(size(FaceModel.refShape, 2));`: Calculates the scale factor based on the size of the reference shape.
+
+4. Create Mean Mesh Structure
+mean_mesh.verts = reshape(options.shapeMU, 3, []);
+mean_mesh.faces = double(options.trilist);
+- `mean_mesh.verts = reshape(options.shapeMU, 3, []);`: Reshapes the mean shape into a 3xN vertex representation.
+- `mean_mesh.faces = double(options.trilist);`: Sets the mesh triangulation (convert to double).
+
+5. Export the Mean Mesh to PLY
+mean_mesh_surface = surfaceMesh(mean_mesh.verts', mean_mesh.faces');
+writeSurfaceMesh(mean_mesh_surface, "mean_mesh.ply");
+- `mean_mesh_surface = surfaceMesh(mean_mesh.verts', mean_mesh.faces');`: Creates a surface mesh object from the vertices and faces.
+- `writeSurfaceMesh(mean_mesh_surface, "mean_mesh.ply");`: Writes the surface mesh to a PLY file named "mean_mesh.ply".
+
+6. Plot the Mean Mesh with Landmarks
+figure;
+mesh_plot(mean_mesh);
+material([0.3 0.7 0]);
+colormap([0.9 0.9 0.9]);
+hold on;
+plot3(mean_mesh.verts(1, options.lmks_vertsIND(:)), mean_mesh.verts(2, options.lmks_vertsIND(:)), mean_mesh.verts(3, options.lmks_vertsIND(:)), '*r');
+text(mean_mesh.verts(1, options.lmks_vertsIND(:)), mean_mesh.verts(2, options.lmks_vertsIND(:)), mean_mesh.verts(3, options.lmks_vertsIND(:)) + 0.001, BabyFaceModel.landmark_names, 'FontSize', 14);
+- `figure;`: Opens a new figure window.
+- `mesh_plot(mean_mesh);`: Plots the mean mesh.
+- `material([0.3 0.7 0]);`: Sets the material properties for the plot.
+- `colormap([0.9 0.9 0.9]);`: Sets the colormap for the plot.
+- `hold on;`: Holds the current plot to overlay new plots.
+- `plot3(...)`: Plots the landmarks on the mesh in red.
+- `text(...)`: Adds text labels for the landmarks.
+
+7. Generate Synthetic Dataset
+nOfSamples = 2;
+chi_squared = 0.99;
+var = 99;
+nOfModes = find(cumsum(FaceModel.pctVar_per_eigen) > var, 1);
+beta2 = chi2inv(chi_squared, nOfModes);
+b = FaceModel.eigenValues(1:nOfModes) .* (-3 + (3 + 3) * rand(nOfModes, nOfSamples)) * 10^6;
+dMah2 = diag(b' * diag(1 ./ FaceModel.eigenValues(1:nOfModes)) * b);
+- `nOfSamples = 2;`: Number of samples to generate.
+- `chi_squared = 0.99;`: Chi-squared value for the synthetic data generation.
+- `var = 99;`: Variance for the synthetic data generation.
+- `nOfModes = find(cumsum(FaceModel.pctVar_per_eigen) > var, 1);`: Determines the number of modes needed to reach the specified variance.
+- `beta2 = chi2inv(chi_squared, nOfModes);`: Calculates the chi-squared inverse for the number of modes.
+- `b = FaceModel.eigenValues(1:nOfModes) .* (-3 + (3 + 3) * rand(nOfModes, nOfSamples)) * 10^6;`: Generates random coefficients for the eigenvalues within a range.
+- `dMah2 = diag(b' * diag(1 ./ FaceModel.eigenValues(1:nOfModes)) * b);`: Calculates the Mahalanobis distance squared.
+
+8. Generate and Plot Synthetic Samples
+for i = 1:nOfSamples
+    aux = FaceModel.meanDeformation' + options.shapeMU' + (FaceModel.eigenFunctions(:, 1:nOfModes) * b(:, i));
+    rec = rsp(aux);
+    figure;
+    mesh_s.verts = rec;
+    mesh_s.faces = double(options.trilist);
+
+    mesh_plot(mesh_s);
+    material([0.3 0.7 0]);
+    colormap([0.9 0.9 0.9]);
+
+    synthetic_mesh_surface = surfaceMesh(mesh_s.verts', mesh_s.faces');
+    writeSurfaceMesh(synthetic_mesh_surface, sprintf('synthetic_mesh_%d.ply', i));
+end
+- For each sample (loop runs `nOfSamples` times):
+  - `aux = FaceModel.meanDeformation' + options.shapeMU' + (FaceModel.eigenFunctions(:, 1:nOfModes) * b(:, i));`: Computes the new shape by adding mean deformation, mean shape, and the weighted eigenfunctions.
+  - `rec = rsp(aux);`: Reshapes the result to 3xN format.
+  - `figure;`: Opens a new figure window.
+  - `mesh_s.verts = rec;`: Assigns the reshaped vertices to `mesh_s.verts`.
+  - `mesh_s.faces = double(options.trilist);`: Assigns the triangulation to `mesh_s.faces`.
+  - `mesh_plot(mesh_s);`: Plots the synthetic mesh.
+  - `material([0.3 0.7 0]);`: Sets the material properties for the plot.
+  - `colormap([0.9 0.9 0.9]);`: Sets the colormap for the plot.
+  - `synthetic_mesh_surface = surfaceMesh(mesh_s.verts', mesh_s.faces');`: Creates a surface mesh object from the vertices and faces.
+  - `writeSurfaceMesh(synthetic_mesh_surface, sprintf('synthetic_mesh_%d.ply', i));`: Writes the surface mesh to a PLY file named based on the sample index.
+
+Summary
+- The code loads a baby face model, sets its characteristics, and generates a mean mesh.
+- It plots the mean mesh and its landmarks.
+- It generates synthetic face meshes by adding random variations to the mean shape using the model's eigenvalues and eigenfunctions.
+- The synthetic meshes are plotted and saved as PLY files for further analysis or visualization.
+"""
+
+"""
+The MAT file 'BabyFaceModel.mat' contains several fields used to generate the baby face models. Here is an explanation of each field:
+
+1. refShape
+- This is the reference shape of the baby face, represented as a vector. It needs to be reshaped into a 3xN matrix where each column represents a vertex in 3D space.
+
+2. landmark_verts
+- This array contains the indices of the vertices that correspond to specific landmarks on the face.
+
+3. eigenValues
+- These are the eigenvalues associated with the principal components (eigenfunctions) of the face model. They represent the variance explained by each component.
+
+4. eigenFunctions
+- These are the eigenfunctions (principal components) of the face model. Each column represents a deformation mode of the face shape.
+
+5. triang
+- This array contains the triangulation (connectivity) information of the face mesh. Each row represents a triangle defined by three vertex indices.
+
+6. meanDeformation
+- This is the mean deformation applied to the reference shape to obtain the average face shape.
+
+7. pctVar_per_eigen
+- This array contains the percentage of variance explained by each eigenvalue. It is used to determine the number of principal components needed to reach a desired level of explained variance.
+
+8. landmark_names
+- This is a cell array containing the names of the landmarks corresponding to the indices in 'landmark_verts'.
+
+How Faces are Generated:
+- The reference shape (refShape) is the base shape of the face.
+- The mean deformation (meanDeformation) is added to the reference shape to obtain the mean face shape.
+- Random coefficients are generated based on the eigenvalues (eigenValues) to create variations of the face shape.
+- These coefficients are multiplied by the eigenfunctions (eigenFunctions) and added to the mean shape to generate synthetic face shapes.
+- The triangulation (triang) is used to define the mesh structure of the face, which can then be visualized and exported.
+
+The process involves reshaping and combining these components to generate and visualize synthetic baby face models.
+"""
