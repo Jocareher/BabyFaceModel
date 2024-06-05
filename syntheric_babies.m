@@ -90,6 +90,7 @@ b = FaceModel.eigenValues(1:nOfModes) .* (-3 + (3 + 3) * rand(nOfModes, nOfSampl
 % Calculate the Mahalanobis distance squared
 dMah2 = diag(b' * diag(1 ./ FaceModel.eigenValues(1:nOfModes)) * b);
 
+
 synthetic_meshes = cell(1, nOfSamples);
 
 % Loop to generate and plot synthetic samples
@@ -120,12 +121,12 @@ for i = 1:nOfSamples % nOfSamples
     for j = 1:length(averaged_landmarks)
         text(mesh_s.verts(1, averaged_landmarks(j)), mesh_s.verts(2, averaged_landmarks(j)), mesh_s.verts(3, averaged_landmarks(j)) + 0.001, sprintf('AL%d', j), 'FontSize', 14, 'Color', 'b');
     end
-    
+
     % Export the synthetic mesh to PLY using surfaceMesh
     synthetic_mesh_surface = surfaceMesh(mesh_s.verts', mesh_s.faces');
     writeSurfaceMesh(synthetic_mesh_surface, sprintf('synthetic_mesh_%d.ply', i));
 end
 
 % Generate interpolations between the mean mesh and synthetic meshes
-steps = 100; % Number of intermediate steps
-generate_interpolations(mean_mesh, synthetic_meshes, steps);
+steps = 5; % Number of intermediate steps
+generate_interpolations(mean_mesh, synthetic_meshes, steps, averaged_landmarks);

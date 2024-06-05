@@ -1,8 +1,8 @@
 function generate_landmarks_from_csv(folder_path)
-% GENERATE_LANDMARKS_FROM_CSV Generates averaged landmarks from CSV files.
+% GENERATE_LANDMARKS_FROM_CSV Generates landmarks from CSV files.
 %   generate_landmarks_from_csv(FOLDER_PATH) reads all CSV files in the
 %   specified folder, applies clustering to find regions, calculates the
-%   average coordinates for each region, and saves the result as a MAT file.
+%   nearest vertices to each region's centroid, and saves the result as a MAT file.
 %
 %   Each CSV file should have the following format:
 %   - The first row contains headers: "vtkOriginalPointIds", "Points:0", "Points:1", "Points:2".
@@ -40,29 +40,26 @@ function generate_landmarks_from_csv(folder_path)
         end
     end
     
-    % Apply k-means clustering to find 6 regions
+    % Apply k-means clustering to find 8 regions
     k = 8;
-    [idx, ~] = kmeans(all_vertices, k);
+    [idx, centroids] = kmeans(all_vertices, k);
     
-    % Initialize the array to store the averaged landmarks
-    averaged_landmarks = zeros(1, 6);
+    % Initialize the cell array to store the closest vertices for each cluster
+    closest_vertices = cell(1, k);
     
-    % Calculate the average coordinates for each cluster
+    % Calculate the closest vertices for each cluster
     for region = 1:k
         cluster_points = all_vertices(idx == region, :);
         cluster_indices = all_indices(idx == region);
         
-        % Calculate the mean coordinates
-        mean_coords = mean(cluster_points, 1);
+        % Calculate the distances from each point to the centroid
+        distances = sqrt(sum((cluster_points - centroids(region, :)).^2, 2));
         
-        % Find the closest vertex to the mean coordinates
-        distances = sqrt(sum((cluster_points - mean_coords).^2, 2));
-        [~, min_idx] = min(distances);
-        
-        % The closest vertex index is the average landmark
-        averaged_landmarks(region) = cluster_indices(min_idx);
+        % Find the indices of the five closest vertices
+        [~, sorted_indices] = sort(distances);
+        closest_vertices{region} = cluster_indices(sorted_indices(1:5));
     end
     
     % Save the results in a MAT file
-    save('averaged_landmarks.mat', 'averaged_landmarks');
+    save('averaged_landmarks.mat', 'closest_vertices');
 end

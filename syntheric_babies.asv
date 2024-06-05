@@ -47,6 +47,8 @@ mean_mesh.faces = double(options.trilist);
 mean_mesh_surface = surfaceMesh(mean_mesh.verts', mean_mesh.faces');
 writeSurfaceMesh(mean_mesh_surface, "mean_mesh.ply");
 
+% Load averaged landmarks
+load('averaged_landmarks.mat');
 
 % MEAN + LANDMARKS MODEL
 figure;
@@ -57,6 +59,17 @@ material([0.3 0.7 0]);
 % Set the colormap for the plot
 colormap([0.9 0.9 0.9]);
 hold on;
+% Plot the original landmarks on the mesh
+plot3(mean_mesh.verts(1, options.lmks_vertsIND(:)), mean_mesh.verts(2, options.lmks_vertsIND(:)), mean_mesh.verts(3, options.lmks_vertsIND(:)), '*r');
+% Add text labels for the original landmarks
+text(mean_mesh.verts(1, options.lmks_vertsIND(:)), mean_mesh.verts(2, options.lmks_vertsIND(:)), mean_mesh.verts(3, options.lmks_vertsIND(:)) + 0.001, BabyFaceModel.landmark_names, 'FontSize', 14);
+
+% Plot the averaged landmarks on the mesh
+plot3(mean_mesh.verts(1, averaged_landmarks), mean_mesh.verts(2, averaged_landmarks), mean_mesh.verts(3, averaged_landmarks), '*b');
+% Add text labels for the averaged landmarks
+for i = 1:length(averaged_landmarks)
+    text(mean_mesh.verts(1, averaged_landmarks(i)), mean_mesh.verts(2, averaged_landmarks(i)), mean_mesh.verts(3, averaged_landmarks(i)) + 0.001, sprintf('AL%d', i), 'FontSize', 14, 'Color', 'b');
+end
 
 %% GENERATE SYNTHETIC DATASET
 % Number of samples to generate
@@ -76,6 +89,7 @@ b = FaceModel.eigenValues(1:nOfModes) .* (-3 + (3 + 3) * rand(nOfModes, nOfSampl
 %b = b';
 % Calculate the Mahalanobis distance squared
 dMah2 = diag(b' * diag(1 ./ FaceModel.eigenValues(1:nOfModes)) * b);
+
 
 synthetic_meshes = cell(1, nOfSamples);
 
@@ -100,31 +114,12 @@ for i = 1:nOfSamples % nOfSamples
     material([0.3 0.7 0]);
     % Set the colormap for the plot
     colormap([0.9 0.9 0.9]);
-% Export the synthetic mesh to PLY using surfaceMesh
-synthetic_mesh_surface = surfaceMesh(mesh_s.verts', mesh_s.faces');
-writeSurfaceMesh(synthetic_mesh_surface, sprintf('synthetic_mesh_%d.ply', i));
+
+    % Export the synthetic mesh to PLY using surfaceMesh
+    synthetic_mesh_surface = surfaceMesh(mesh_s.verts', mesh_s.faces');
+    writeSurfaceMesh(synthetic_mesh_surface, sprintf('synthetic_mesh_%d.ply', i));
 end
 
 % Generate interpolations between the mean mesh and synthetic meshes
-steps = 10; % Number of intermediate steps
-generate_interpolations(mean_mesh, synthetic_meshes, steps);
-
-% Plotting the vertex clusters on interpolated meshes
-for i = 1:length(synthetic_meshes)
-    for s = 0:steps
-        filename = sprintf('interpolated_mesh_%d_step_%d.ply', i, s);
-        interpolated_mesh = readMesh(filename);
-        figure;
-        mesh_plot(interpolated_mesh);
-        material([0.3 0.7 0]);
-        colormap([0.9 0.9 0.9]);
-        hold on;
-        for k = 1:length(vertex_clusters)
-            cluster = vertex_clusters{k};
-            plot3(interpolated_mesh.verts(1, cluster), interpolated_mesh.verts(2, cluster), interpolated_mesh.verts(3, cluster), '*', 'Color', colors(k));
-            for j = 1:length(cluster)
-                text(interpolated_mesh.verts(1, cluster(j)), interpolated_mesh.verts(2, cluster(j)), interpolated_mesh.verts(3, cluster(j)) + 0.001, sprintf('C%d-%d', k, j), 'FontSize', 14, 'Color', colors(k));
-            end
-        end
-    end
-end
+steps = 100; % Number of intermediate steps
+generate_interpolations(mean_mesh, synthetic_meshes, steps, averaged_landmarks);
