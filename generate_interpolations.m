@@ -13,6 +13,10 @@ function generate_interpolations(mean_mesh, synthetic_meshes, steps, closest_ver
     v.FrameRate = 10; % Set the frame rate
     open(v);
 
+    % Camera rotation angles
+    azimuth_angles = linspace(0, 360, steps+1); % Full rotation
+    elevation_angle = 30; % Fixed elevation
+
     for i = 1:num_meshes
         for s = 0:steps
             % Linear interpolation
@@ -32,6 +36,10 @@ function generate_interpolations(mean_mesh, synthetic_meshes, steps, closest_ver
             for k = 1:length(closest_vertices)
                 plot3(interpolated_mesh.verts(1, closest_vertices{k}), interpolated_mesh.verts(2, closest_vertices{k}), interpolated_mesh.verts(3, closest_vertices{k}), '*b');
             end
+
+            % Set the camera view
+            azimuth_angle = azimuth_angles(s+1);
+            view(azimuth_angle, elevation_angle);
 
             % Capture the frame for the animation
             frame = getframe(gcf);
