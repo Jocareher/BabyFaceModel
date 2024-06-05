@@ -73,7 +73,7 @@ end
 
 %% GENERATE SYNTHETIC DATASET
 % Number of samples to generate
-nOfSamples = 10;
+nOfSamples = 1;
 % Chi-squared value for the synthetic data generation
 chi_squared = 0.99; % 0.99
 % Variance for the synthetic data generation
@@ -90,6 +90,8 @@ b = FaceModel.eigenValues(1:nOfModes) .* (-3 + (3 + 3) * rand(nOfModes, nOfSampl
 % Calculate the Mahalanobis distance squared
 dMah2 = diag(b' * diag(1 ./ FaceModel.eigenValues(1:nOfModes)) * b);
 
+synthetic_meshes = cell(1, nOfSamples);
+
 % Loop to generate and plot synthetic samples
 for i = 1:nOfSamples % nOfSamples
     % Compute the new shape by adding mean deformation, mean shape, and the weighted eigenfunctions
@@ -103,6 +105,7 @@ for i = 1:nOfSamples % nOfSamples
     % Create a structure for the synthetic mesh
     mesh_s.verts = rec;
     mesh_s.faces = double(options.trilist);
+    synthetic_meshes{i} = mesh_s;
 
     % Plot the synthetic mesh
     mesh_plot(mesh_s);
@@ -122,3 +125,7 @@ for i = 1:nOfSamples % nOfSamples
     synthetic_mesh_surface = surfaceMesh(mesh_s.verts', mesh_s.faces');
     writeSurfaceMesh(synthetic_mesh_surface, sprintf('synthetic_mesh_%d.ply', i));
 end
+
+% Generate interpolations between the mean mesh and synthetic meshes
+steps = 100; % Number of intermediate steps
+generate_interpolations(mean_mesh, synthetic_meshes, steps);

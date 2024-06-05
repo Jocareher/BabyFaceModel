@@ -1,4 +1,4 @@
-function generate_interpolations(mean_mesh, synthetic_meshes, steps, averaged_landmarks)
+function generate_interpolations(mean_mesh, synthetic_meshes, steps)
     % Generate interpolations between the mean mesh and synthetic meshes.
     % mean_mesh: Structure with fields 'verts' and 'faces' representing the mean mesh.
     % synthetic_meshes: Cell array of structures representing the synthetic meshes.
@@ -22,13 +22,6 @@ function generate_interpolations(mean_mesh, synthetic_meshes, steps, averaged_la
             % Create the interpolated mesh structure
             interpolated_mesh.verts = interpolated_verts;
             interpolated_mesh.faces = mean_mesh.faces;
-
-            % Plot the averaged landmarks on the interpolated mesh
-            hold on;
-            plot3(interpolated_mesh.verts(1, averaged_landmarks), interpolated_mesh.verts(2, averaged_landmarks), interpolated_mesh.verts(3, averaged_landmarks), '*b');
-            for j = 1:length(averaged_landmarks)
-                text(interpolated_mesh.verts(1, averaged_landmarks(j)), interpolated_mesh.verts(2, averaged_landmarks(j)), interpolated_mesh.verts(3, averaged_landmarks(j)) + 0.001, sprintf('AL%d', j), 'FontSize', 14, 'Color', 'b');
-            end
 
             % Save the interpolated mesh to a PLY file
             filename = sprintf('interpolated_mesh_%d_step_%d.ply', i, s);
