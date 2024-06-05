@@ -65,10 +65,12 @@ plot3(mean_mesh.verts(1, options.lmks_vertsIND(:)), mean_mesh.verts(2, options.l
 text(mean_mesh.verts(1, options.lmks_vertsIND(:)), mean_mesh.verts(2, options.lmks_vertsIND(:)), mean_mesh.verts(3, options.lmks_vertsIND(:)) + 0.001, BabyFaceModel.landmark_names, 'FontSize', 14);
 
 % Plot the averaged landmarks on the mesh
-plot3(mean_mesh.verts(1, averaged_landmarks), mean_mesh.verts(2, averaged_landmarks), mean_mesh.verts(3, averaged_landmarks), '*b');
-% Add text labels for the averaged landmarks
-for i = 1:length(averaged_landmarks)
-    text(mean_mesh.verts(1, averaged_landmarks(i)), mean_mesh.verts(2, averaged_landmarks(i)), mean_mesh.verts(3, averaged_landmarks(i)) + 0.001, sprintf('AL%d', i), 'FontSize', 14, 'Color', 'b');
+for k = 1:length(closest_vertices)
+    plot3(mean_mesh.verts(1, closest_vertices{k}), mean_mesh.verts(2, closest_vertices{k}), mean_mesh.verts(3, closest_vertices{k}), '*b');
+    %for v = 1:length(closest_vertices{k})
+        %text(mean_mesh.verts(1, closest_vertices{k}(v)), mean_mesh.verts(2, closest_vertices{k}(v)), mean_mesh.verts(3, closest_vertices{k}(v)) + 0.001, sprintf('AL%d-%d', k, v), 'FontSize', 8, 'Color', 'b');
+        %text(mean_mesh.verts(1, closest_vertices{k}(v)), mean_mesh.verts(2, closest_vertices{k}(v)), mean_mesh.verts(3, closest_vertices{k}(v)) + 0.001, sprintf('AL%d-%d', k, v), 'FontSize', 8, 'Color', 'b');
+    %end
 end
 
 %% GENERATE SYNTHETIC DATASET
@@ -89,7 +91,6 @@ b = FaceModel.eigenValues(1:nOfModes) .* (-3 + (3 + 3) * rand(nOfModes, nOfSampl
 %b = b';
 % Calculate the Mahalanobis distance squared
 dMah2 = diag(b' * diag(1 ./ FaceModel.eigenValues(1:nOfModes)) * b);
-
 
 synthetic_meshes = cell(1, nOfSamples);
 
@@ -115,18 +116,21 @@ for i = 1:nOfSamples % nOfSamples
     % Set the colormap for the plot
     colormap([0.9 0.9 0.9]);
 
-    % Plot the averaged landmarks on the synthetic mesh
+    % Plot the closest landmarks on the synthetic mesh
     hold on;
-    plot3(mesh_s.verts(1, averaged_landmarks), mesh_s.verts(2, averaged_landmarks), mesh_s.verts(3, averaged_landmarks), '*b');
-    for j = 1:length(averaged_landmarks)
-        text(mesh_s.verts(1, averaged_landmarks(j)), mesh_s.verts(2, averaged_landmarks(j)), mesh_s.verts(3, averaged_landmarks(j)) + 0.001, sprintf('AL%d', j), 'FontSize', 14, 'Color', 'b');
+    for k = 1:length(closest_vertices)
+        plot3(mesh_s.verts(1, closest_vertices{k}), mesh_s.verts(2, closest_vertices{k}), mesh_s.verts(3, closest_vertices{k}), '*b');
+        %for v = 1:length(closest_vertices{k})
+         %   text(mesh_s.verts(1, closest_vertices{k}(v)), mesh_s.verts(2, closest_vertices{k}(v)), mesh_s.verts(3, closest_vertices{k}(v)) + 0.001, sprintf('AL%d-%d', k, v), 'FontSize', 14, 'Color', 'b');
+        %end
     end
-
+    
     % Export the synthetic mesh to PLY using surfaceMesh
     synthetic_mesh_surface = surfaceMesh(mesh_s.verts', mesh_s.faces');
     writeSurfaceMesh(synthetic_mesh_surface, sprintf('synthetic_mesh_%d.ply', i));
 end
 
 % Generate interpolations between the mean mesh and synthetic meshes
-steps = 5; % Number of intermediate steps
-generate_interpolations(mean_mesh, synthetic_meshes, steps, averaged_landmarks);
+steps = 10; % Number of intermediate steps
+generate_interpolations(mean_mesh, synthetic_meshes, steps, closest_vertices);
+
