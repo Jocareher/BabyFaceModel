@@ -153,3 +153,15 @@ How Faces are Generated:
 
 The process involves reshaping and combining these components to generate and visualize synthetic baby face models.
 """
+
+
+The BabyFaceModel.mat file contains a structure with the following elements:
+
+refShape: The reference shape of the baby face model.
+meanDeformation: The mean deformation vector of the model.
+triang: The triangulation information of the model, defining the mesh structure.
+landmark_names: Names of the landmarks on the face.
+landmark_verts: Indices of the landmark vertices.
+eigenValues: Eigenvalues associated with the principal components of the shape variations.
+pctVar_per_eigen: Percentage of variance explained by each eigenvalue.
+eigenFunctions: Eigenfunctions representing the principal components of the shape variations.
