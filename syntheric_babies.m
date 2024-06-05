@@ -48,7 +48,15 @@ mean_mesh_surface = surfaceMesh(mean_mesh.verts', mean_mesh.faces');
 writeSurfaceMesh(mean_mesh_surface, "mean_mesh.ply");
 
 % Load averaged landmarks
-load('vertex_clusters.mat');
+load('averaged_landmarks.mat');
+
+% Generate Gaussian landmarks
+variance = 0.001;
+num_points_per_landmark = 10;
+generate_gaussian_landmarks(averaged_landmarks, mean_mesh, variance, num_points_per_landmark);
+
+% Load the generated Gaussian landmarks
+load('gaussian_landmarks.mat');
 
 % MEAN + LANDMARKS MODEL
 figure;
@@ -60,19 +68,19 @@ material([0.3 0.7 0]);
 colormap([0.9 0.9 0.9]);
 hold on;
 
-% Plot the vertex clusters on the mesh
+% Define colors for plotting
 colors = ['r', 'g', 'b', 'c', 'm', 'y'];
-for i = 1:length(vertex_clusters)
-    cluster = vertex_clusters{i};
-    plot3(mean_mesh.verts(1, cluster), mean_mesh.verts(2, cluster), mean_mesh.verts(3, cluster), '*', 'Color', colors(i));
-    for j = 1:length(cluster)
-        text(mean_mesh.verts(1, cluster(j)), mean_mesh.verts(2, cluster(j)), mean_mesh.verts(3, cluster(j)) + 0.001, sprintf('C%d-%d', i, j), 'FontSize', 14, 'Color', colors(i));
+for i = 1:length(new_points)
+    points = new_points{i};
+    plot3(points(:, 1), points(:, 2), points(:, 3), '*', 'Color', colors(i));
+    for j = 1:size(points, 1)
+        text(points(j, 1), points(j, 2), points(j, 3) + 0.001, sprintf('G%d-%d', i, j), 'FontSize', 14, 'Color', colors(i));
     end
 end
 
 %% GENERATE SYNTHETIC DATASET
 % Number of samples to generate
-nOfSamples = 10;
+nOfSamples = 1;
 % Chi-squared value for the synthetic data generation
 chi_squared = 0.99; % 0.99
 % Variance for the synthetic data generation
@@ -107,25 +115,15 @@ for i = 1:nOfSamples % nOfSamples
     synthetic_meshes{i} = mesh_s;
 
     % Plot the synthetic mesh
-mesh_plot(mesh_s);
-% Set the material properties for the plot
-material([0.3 0.7 0]);
-% Set the colormap for the plot
-colormap([0.9 0.9 0.9]);
+    mesh_plot(mesh_s);
+    % Set the material properties for the plot
+    material([0.3 0.7 0]);
+    % Set the colormap for the plot
+    colormap([0.9 0.9 0.9]);
 
-% Plot the vertex clusters on the synthetic mesh
-hold on;
-for k = 1:length(vertex_clusters)
-    cluster = vertex_clusters{k};
-    plot3(mesh_s.verts(1, cluster), mesh_s.verts(2, cluster), mesh_s.verts(3, cluster), '*', 'Color', colors(k));
-    for j = 1:length(cluster)
-        text(mesh_s.verts(1, cluster(j)), mesh_s.verts(2, cluster(j)), mesh_s.verts(3, cluster(j)) + 0.001, sprintf('C%d-%d', k, j), 'FontSize', 14, 'Color', colors(k));
-    end
-end
-
-% Export the synthetic mesh to PLY using surfaceMesh
-synthetic_mesh_surface = surfaceMesh(mesh_s.verts', mesh_s.faces');
-writeSurfaceMesh(synthetic_mesh_surface, sprintf('synthetic_mesh_%d.ply', i));
+    % Export the synthetic mesh to PLY using surfaceMesh
+    synthetic_mesh_surface = surfaceMesh(mesh_s.verts', mesh_s.faces');
+    writeSurfaceMesh(synthetic_mesh_surface, sprintf('synthetic_mesh_%d.ply', i));
 end
 
 % Generate interpolations between the mean mesh and synthetic meshes
@@ -142,12 +140,13 @@ for i = 1:length(synthetic_meshes)
         material([0.3 0.7 0]);
         colormap([0.9 0.9 0.9]);
         hold on;
-        for k = 1:length(vertex_clusters)
-            cluster = vertex_clusters{k};
-            plot3(interpolated_mesh.verts(1, cluster), interpolated_mesh.verts(2, cluster), interpolated_mesh.verts(3, cluster), '*', 'Color', colors(k));
-            for j = 1:length(cluster)
-                text(interpolated_mesh.verts(1, cluster(j)), interpolated_mesh.verts(2, cluster(j)), interpolated_mesh.verts(3, cluster(j)) + 0.001, sprintf('C%d-%d', k, j), 'FontSize', 14, 'Color', colors(k));
+        for k = 1:length(new_points)
+            points = new_points{k};
+            plot3(points(:, 1), points(:, 2), points(:, 3), '*', 'Color', colors(k));
+            for j = 1:size(points, 1)
+                text(points(j, 1), points(j, 2), points(j, 3) + 0.001, sprintf('G%d-%d', k, j), 'FontSize', 14, 'Color', colors(k));
             end
         end
     end
 end
+
