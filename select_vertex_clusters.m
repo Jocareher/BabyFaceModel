@@ -15,11 +15,14 @@ function select_vertex_clusters(folder_path, k)
         file_name = files(i).name;
         file_path = fullfile(folder_path, file_name);
         
-        % Read the CSV file as text
-        data = readmatrix(file_path, 'NumHeaderLines', 1);
+        % Read the CSV file
+        fileID = fopen(file_path, 'r');
+        data = textscan(fileID, '%s', 'Delimiter', '\n', 'HeaderLines', 1);
+        fclose(fileID);
         
         % Parse the data
-        for j = 1:size(data, 1)
+        data = data{1};
+        for j = 1:length(data)
             line = strsplit(data{j}, ',');
             index = str2double(line{1});
             x_coord = str2double(line{2});
