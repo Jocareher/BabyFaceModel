@@ -131,6 +131,6 @@ for i = 1:nOfSamples % nOfSamples
 end
 
 % Generate interpolations between the mean mesh and synthetic meshes
-steps = 10; % Number of intermediate steps
+steps = 50; % Number of intermediate steps
 generate_interpolations(mean_mesh, synthetic_meshes, steps, closest_vertices);
 
