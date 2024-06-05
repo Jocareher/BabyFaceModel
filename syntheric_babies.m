@@ -67,10 +67,6 @@ text(mean_mesh.verts(1, options.lmks_vertsIND(:)), mean_mesh.verts(2, options.lm
 % Plot the averaged landmarks on the mesh
 for k = 1:length(closest_vertices)
     plot3(mean_mesh.verts(1, closest_vertices{k}), mean_mesh.verts(2, closest_vertices{k}), mean_mesh.verts(3, closest_vertices{k}), '*b');
-    %for v = 1:length(closest_vertices{k})
-        %text(mean_mesh.verts(1, closest_vertices{k}(v)), mean_mesh.verts(2, closest_vertices{k}(v)), mean_mesh.verts(3, closest_vertices{k}(v)) + 0.001, sprintf('AL%d-%d', k, v), 'FontSize', 8, 'Color', 'b');
-        %text(mean_mesh.verts(1, closest_vertices{k}(v)), mean_mesh.verts(2, closest_vertices{k}(v)), mean_mesh.verts(3, closest_vertices{k}(v)) + 0.001, sprintf('AL%d-%d', k, v), 'FontSize', 8, 'Color', 'b');
-    %end
 end
 
 %% GENERATE SYNTHETIC DATASET
@@ -120,17 +116,13 @@ for i = 1:nOfSamples % nOfSamples
     hold on;
     for k = 1:length(closest_vertices)
         plot3(mesh_s.verts(1, closest_vertices{k}), mesh_s.verts(2, closest_vertices{k}), mesh_s.verts(3, closest_vertices{k}), '*b');
-        %for v = 1:length(closest_vertices{k})
-         %   text(mesh_s.verts(1, closest_vertices{k}(v)), mesh_s.verts(2, closest_vertices{k}(v)), mesh_s.verts(3, closest_vertices{k}(v)) + 0.001, sprintf('AL%d-%d', k, v), 'FontSize', 14, 'Color', 'b');
-        %end
     end
     
     % Export the synthetic mesh to PLY using surfaceMesh
-    synthetic_mesh_surface = surfaceMesh(mesh_s.verts', mesh_s.faces');
+    synthetic_mesh_surface = surfaceMesh(mesh_s.verts', mesh_s.faces()');
     writeSurfaceMesh(synthetic_mesh_surface, sprintf('synthetic_mesh_%d.ply', i));
 end
 
 % Generate interpolations between the mean mesh and synthetic meshes
-steps = 50; % Number of intermediate steps
+steps = 10; % Number of intermediate steps
 generate_interpolations(mean_mesh, synthetic_meshes, steps, closest_vertices);
-

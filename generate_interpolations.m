@@ -14,8 +14,8 @@ function generate_interpolations(mean_mesh, synthetic_meshes, steps, closest_ver
     open(v);
 
     % Camera rotation angles
-    azimuth_angles = linspace(0, 360, steps+1); % Full rotation
-    elevation_angle = 30; % Fixed elevation
+    %azimuth_angles = linspace(0, 360, steps+1); % Full rotation
+    %elevation_angle = 30; % Fixed elevation
 
     for i = 1:num_meshes
         for s = 0:steps
@@ -38,8 +38,8 @@ function generate_interpolations(mean_mesh, synthetic_meshes, steps, closest_ver
             end
 
             % Set the camera view
-            azimuth_angle = azimuth_angles(s+1);
-            view(azimuth_angle, elevation_angle);
+            %azimuth_angle = azimuth_angles(s+1);
+            %view(azimuth_angle, elevation_angle);
 
             % Capture the frame for the animation
             frame = getframe(gcf);
