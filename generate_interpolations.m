@@ -8,14 +8,22 @@ function generate_interpolations(mean_mesh, synthetic_meshes, steps, closest_ver
     % Number of synthetic meshes
     num_meshes = length(synthetic_meshes);
 
-    % Prepare the video writer
-    v = VideoWriter('interpolated_animation.avi');
-    v.FrameRate = 10; % Set the frame rate
-    open(v);
+    % Prepare the video writers for different angles
+    v_frontal = VideoWriter('interpolated_animation_frontal.avi');
+    v_right = VideoWriter('interpolated_animation_right.avi');
+    v_left = VideoWriter('interpolated_animation_left.avi');
+
+    v_frontal.FrameRate = 10; % Set the frame rate
+    v_right.FrameRate = 10;
+    v_left.FrameRate = 10;
+
+    open(v_frontal);
+    open(v_right);
+    open(v_left);
 
     % Camera rotation angles
-    %azimuth_angles = linspace(0, 360, steps+1); % Full rotation
-    %elevation_angle = 30; % Fixed elevation
+    azimuth_angles = linspace(0, 0, steps+1);
+    elevation_angle = 30; % Fixed elevation
 
     for i = 1:num_meshes
         for s = 0:steps
@@ -27,7 +35,7 @@ function generate_interpolations(mean_mesh, synthetic_meshes, steps, closest_ver
             interpolated_mesh.verts = interpolated_verts;
             interpolated_mesh.faces = mean_mesh.faces;
 
-            % Plot the interpolated mesh
+            % Plot the interpolated mesh for frontal view
             figure;
             mesh_plot(interpolated_mesh);
             material([0.3 0.7 0]);
@@ -36,14 +44,37 @@ function generate_interpolations(mean_mesh, synthetic_meshes, steps, closest_ver
             for k = 1:length(closest_vertices)
                 plot3(interpolated_mesh.verts(1, closest_vertices{k}), interpolated_mesh.verts(2, closest_vertices{k}), interpolated_mesh.verts(3, closest_vertices{k}), '*b');
             end
-
-            % Set the camera view
-            %azimuth_angle = azimuth_angles(s+1);
-            %view(azimuth_angle, elevation_angle);
-
-            % Capture the frame for the animation
+            view(0, elevation_angle); % Frontal view
             frame = getframe(gcf);
-            writeVideo(v, frame);
+            writeVideo(v_frontal, frame);
+            close(gcf);
+
+            % Plot the interpolated mesh for right side view
+            figure;
+            mesh_plot(interpolated_mesh);
+            material([0.3 0.7 0]);
+            colormap([0.9 0.9 0.9]);
+            hold on;
+            for k = 1:length(closest_vertices)
+                plot3(interpolated_mesh.verts(1, closest_vertices{k}), interpolated_mesh.verts(2, closest_vertices{k}), interpolated_mesh.verts(3, closest_vertices{k}), '*b');
+            end
+            view(90, elevation_angle); % Right side view
+            frame = getframe(gcf);
+            writeVideo(v_right, frame);
+            close(gcf);
+
+            % Plot the interpolated mesh for left side view
+            figure;
+            mesh_plot(interpolated_mesh);
+            material([0.3 0.7 0]);
+            colormap([0.9 0.9 0.9]);
+            hold on;
+            for k = 1:length(closest_vertices)
+                plot3(interpolated_mesh.verts(1, closest_vertices{k}), interpolated_mesh.verts(2, closest_vertices{k}), interpolated_mesh.verts(3, closest_vertices{k}), '*b');
+            end
+            view(-90, elevation_angle); % Left side view
+            frame = getframe(gcf);
+            writeVideo(v_left, frame);
             close(gcf);
 
             % Save the interpolated mesh to a PLY file
@@ -56,6 +87,8 @@ function generate_interpolations(mean_mesh, synthetic_meshes, steps, closest_ver
         end
     end
 
-    % Close the video writer
-    close(v);
+    % Close the video writers
+    close(v_frontal);
+    close(v_right);
+    close(v_left);
 end
