@@ -1,21 +1,53 @@
-function generate_landmarks_from_csv(folder_path)
-% GENERATE_LANDMARKS_FROM_CSV Generates landmarks from CSV files.
-%   generate_landmarks_from_csv(FOLDER_PATH) reads all CSV files in the
-%   specified folder, applies clustering to find regions, calculates the
-%   nearest vertices to each region's centroid, and saves the result as a MAT file.
+function generateLandmarksFromCSV(folder_path, k)
+% GENERATELANDMARKSFROMCSV Generates landmarks from CSV files.
+%   generateLandmarksFromCSV(FOLDER_PATH, K) reads all CSV files in the
+%   specified folder, applies k-means clustering to find K regions, calculates the
+%   five nearest vertices to each region's centroid, and saves the result as a MAT file.
 %
 %   Each CSV file should have the following format:
 %   - The first row contains headers: "vtkOriginalPointIds", "Points:0", "Points:1", "Points:2".
 %   - Each subsequent row contains the vertex index and its x, y, z coordinates.
+%
+%   Inputs:
+%   - folder_path: Path to the folder containing the CSV files.
+%   - k: Number of clusters (regions) to find using k-means clustering.
+%
+%   Outputs:
+%   - Saves a MAT file 'averaged_landmarks.mat' containing the closest vertices for each cluster.
 
     % Get the list of CSV files in the specified folder
     files = dir(fullfile(folder_path, '*.csv'));
     num_files = length(files);
+        
+    % Initialize counters
+    total_vertices = 0;
     
-    % Initialize a cell array to store the vertices of each region across all files
-    all_vertices = [];
-    all_indices = [];
+    % First pass to count the total number of vertices
+    for i = 1:num_files
+        file_name = files(i).name;
+        file_path = fullfile(folder_path, file_name);
+        
+        % Count the number of lines (vertices) in the file
+        fid = fopen(file_path, 'rt');
+        num_lines = 0;
+        while fgets(fid) ~= -1
+            num_lines = num_lines + 1;
+        end
+        fclose(fid);
+        
+        % Subtract the header line
+        num_lines = num_lines - 1;
+        
+        % Update total_vertices
+        total_vertices = total_vertices + num_lines;
+    end
     
+    % Preallocate arrays
+    all_vertices = zeros(total_vertices, 3);
+    all_indices = zeros(total_vertices, 1);
+    
+    % Second pass to read the data
+    current_idx = 1;
     for i = 1:num_files
         file_name = files(i).name;
         file_path = fullfile(folder_path, file_name);
@@ -27,7 +59,8 @@ function generate_landmarks_from_csv(folder_path)
         
         % Parse the data
         data = data{1};
-        for j = 1:length(data)
+        num_data = length(data);
+        for j = 1:num_data
             line = strsplit(data{j}, ',');
             index = str2double(line{1});
             x_coord = str2double(line{2});
@@ -35,13 +68,13 @@ function generate_landmarks_from_csv(folder_path)
             z_coord = str2double(line{4});
             
             % Append vertices and indices to the arrays
-            all_vertices = [all_vertices; x_coord, y_coord, z_coord];
-            all_indices = [all_indices; index];
+            all_vertices(current_idx, :) = [x_coord, y_coord, z_coord];
+            all_indices(current_idx) = index;
+            current_idx = current_idx + 1;
         end
     end
     
-    % Apply k-means clustering to find 8 regions
-    k = 8;
+    % Apply k-means clustering to find k regions
     [idx, centroids] = kmeans(all_vertices, k);
     
     % Initialize the cell array to store the closest vertices for each cluster

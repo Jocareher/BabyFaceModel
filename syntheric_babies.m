@@ -88,6 +88,7 @@ b = FaceModel.eigenValues(1:nOfModes) .* (-3 + (3 + 3) * rand(nOfModes, nOfSampl
 % Calculate the Mahalanobis distance squared
 dMah2 = diag(b' * diag(1 ./ FaceModel.eigenValues(1:nOfModes)) * b);
 
+% Initialize the cell array to store the synthetic generated meshes
 synthetic_meshes = cell(1, nOfSamples);
 
 % Loop to generate and plot synthetic samples
@@ -124,5 +125,5 @@ for i = 1:nOfSamples % nOfSamples
 end
 
 % Generate interpolations between the mean mesh and synthetic meshes
-steps = 25; % Number of intermediate steps
-generate_interpolations(mean_mesh, synthetic_meshes, steps, closest_vertices);
+steps = 5; % Number of intermediate steps
+generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vertices);
