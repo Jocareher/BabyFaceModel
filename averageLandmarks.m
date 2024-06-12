@@ -7,4 +7,4 @@
 folder_path = '/Users/jocareher/Library/CloudStorage/OneDrive-Personal/Educación/PhD_UPF_2023/babyfm_matlab/landmarks_regions';
 
 % Call the function to generate the averaged landmarks
-generateLandmarksFromCSV(folder_path, 8);
+generateLandmarksFromCSV(folder_path, 8, 5);

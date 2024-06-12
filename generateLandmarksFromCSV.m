@@ -1,20 +1,20 @@
 function generateLandmarksFromCSV(folder_path, k, ring_size)
-% GENERATELANDMARKSFROMCSCBYRINGS Generates landmarks from CSV files.
-%   generateLandmarksFromCSVByRings(FOLDER_PATH, K, RING_SIZE) reads all CSV files in the
-%   specified folder, applies k-means clustering to find K regions, calculates the
-%   nearest vertices to each region's centroid based on connectivity rings, and saves the result as a MAT file.
-%
-%   Each CSV file should have the following format:
-%   - The first row contains headers: "vtkOriginalPointIds", "Points:0", "Points:1", "Points:2".
-%   - Each subsequent row contains the vertex index and its x, y, z coordinates.
-%
-%   Inputs:
-%   - folder_path: Path to the folder containing the CSV files.
-%   - k: Number of clusters (regions) to find using k-means clustering.
-%   - ring_size: Number of rings to consider for selecting vertices.
-%
-%   Outputs:
-%   - Saves a MAT file 'averaged_landmarks.mat' containing the closest vertices for each cluster.
+    % GENERATELANDMARKSFROMCSCBYRINGS Generates landmarks from CSV files.
+    %   generateLandmarksFromCSVByRings(FOLDER_PATH, K, RING_SIZE) reads all CSV files in the
+    %   specified folder, applies k-means clustering to find K regions, calculates the
+    %   nearest vertices to each region's centroid based on connectivity rings, and saves the result as a MAT file.
+    %
+    %   Each CSV file should have the following format:
+    %   - The first row contains headers: "vtkOriginalPointIds", "Points:0", "Points:1", "Points:2".
+    %   - Each subsequent row contains the vertex index and its x, y, z coordinates.
+    %
+    %   Inputs:
+    %   - folder_path: Path to the folder containing the CSV files.
+    %   - k: Number of clusters (regions) to find using k-means clustering.
+    %   - ring_size: Number of rings to consider for selecting vertices.
+    %
+    %   Outputs:
+    %   - Saves a MAT file 'averaged_landmarks.mat' containing the closest vertices for each cluster.
 
     % Get the list of CSV files in the specified folder
     files = dir(fullfile(folder_path, '*.csv'));
@@ -75,8 +75,18 @@ function generateLandmarksFromCSV(folder_path, k, ring_size)
         end
     end
     
+    % Display the vertices and indices
+    disp('All vertices:');
+    disp(all_vertices);
+    disp('All indices:');
+    disp(all_indices);
+    
     % Apply k-means clustering to find k regions
     [~, centroids] = kmeans(all_vertices, k);
+    
+    % Display centroids for debugging
+    disp('Centroids:');
+    disp(centroids);
     
     % Initialize the cell array to store the closest vertices for each cluster
     closest_vertices = cell(1, k);
@@ -90,14 +100,21 @@ function generateLandmarksFromCSV(folder_path, k, ring_size)
         % Get the central vertex of the cluster
         central_vertex = centroids(region, :);
         
-        % Initialize the ring with the central vertex
-        ring_vertices = find(ismember(all_vertices, central_vertex, 'rows'));
+        % Find the closest vertex in all_vertices to the centroid
+        distances = sqrt(sum((all_vertices - central_vertex).^2, 2));
+        [~, min_idx] = min(distances);
+        ring_vertices = min_idx;
+        
+        % Display the ring vertices for debugging
+        disp(['Ring vertices for region ', num2str(region), ':']);
+        disp(ring_vertices);
+        
         all_selected_vertices = ring_vertices;
         
         for r = 1:ring_size
             new_ring_vertices = [];
-            for v = ring_vertices
-                new_ring_vertices = [new_ring_vertices; connectivity{v}'];
+            for v = ring_vertices'
+                new_ring_vertices = [new_ring_vertices; connectivity{v}(:)];
             end
             new_ring_vertices = unique(new_ring_vertices);
             all_selected_vertices = [all_selected_vertices; new_ring_vertices];
@@ -107,8 +124,12 @@ function generateLandmarksFromCSV(folder_path, k, ring_size)
         
         % Select the vertices for this cluster
         closest_vertices{region} = all_selected_vertices(1:min(5, length(all_selected_vertices)));
+        
+        % Display the selected vertices for debugging
+        disp(['Selected vertices for region ', num2str(region), ':']);
+        disp(closest_vertices{region});
     end
     
     % Save the results in a MAT file
-    save('averaged_landmarks.mat', 'closest_vertices');
+    save('averaged_landmarks_per_ring.mat', 'closest_vertices', 'centroids', 'all_vertices', 'all_indices');
 end

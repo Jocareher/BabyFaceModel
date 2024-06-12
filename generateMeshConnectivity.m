@@ -10,11 +10,12 @@ function generateMeshConnectivity(trilist, num_vertices)
 %   Outputs:
 %   - Saves a MAT file 'connectivity.mat' containing the connectivity cell array.
 
-    connectivity = cell(num_vertices, 1);
+     connectivity = cell(num_vertices, 1);
     
     % Loop through each face in the triangulation list
     for i = 1:size(trilist, 1)
         vertices = trilist(i, :);
+        fprintf('Processing face %d: vertices %d, %d, %d\n', i, vertices(1), vertices(2), vertices(3));
         for j = 1:3
             for k = 1:3
                 if j ~= k
@@ -28,6 +29,9 @@ function generateMeshConnectivity(trilist, num_vertices)
     for i = 1:num_vertices
         connectivity{i} = unique(connectivity{i});
     end
+    
+    % Display connectivity for debugging
+    disp(connectivity);
     
     % Save the connectivity matrix
     save('connectivity.mat', 'connectivity');

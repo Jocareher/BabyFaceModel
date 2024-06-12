@@ -47,9 +47,17 @@ mean_mesh.faces = double(options.trilist);
 mean_mesh_surface = surfaceMesh(mean_mesh.verts', mean_mesh.faces');
 writeSurfaceMesh(mean_mesh_surface, "mean_mesh.ply");
 
+% Check trilist and num_vertices
+%disp('Triangulation List:');
+%disp(options.trilist);
+
+
+
 % Generate the connectivity matrix
 num_vertices = size(mean_mesh.verts, 2);
-generateMeshConnectivity(options.trilist, num_vertices);
+%disp('Number of vertices:');
+%disp(num_vertices);
+generateMeshConnectivity(options.trilist', num_vertices);
 
 % Load averaged landmarks
 load('averaged_landmarks.mat');

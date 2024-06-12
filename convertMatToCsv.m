@@ -1,5 +1,5 @@
 % Load the closest vertices from the MAT file
-load('averaged_landmarks.mat');
+load('averaged_landmarks_per_ring.mat');
 
 % Load the mean mesh (or any representative mesh to get the vertex positions)
 load('BabyFaceModel.mat');
@@ -7,7 +7,7 @@ FaceModel = BabyFaceModel;
 options.shapeMU = reshape(FaceModel.refShape, 3, []);
 
 % Create a CSV file to store the landmark points
-fileID = fopen('closest_vertices.csv', 'w');
+fileID = fopen('closest_vertices_per_ring.csv', 'w');
 fprintf(fileID, 'ID,X,Y,Z\n');
 
 % Loop through the closest vertices and write to the CSV file
