@@ -54,10 +54,10 @@ writeSurfaceMesh(mean_mesh_surface, "mean_mesh.ply");
 
 
 % Generate the connectivity matrix
-num_vertices = size(mean_mesh.verts, 2);
+%num_vertices = size(mean_mesh.verts, 2);
 %disp('Number of vertices:');
 %disp(num_vertices);
-generateMeshConnectivity(options.trilist', num_vertices);
+%generateMeshConnectivity(options.trilist', num_vertices);
 
 % Load averaged landmarks
 load('averaged_landmarks.mat');
