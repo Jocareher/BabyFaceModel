@@ -47,6 +47,10 @@ mean_mesh.faces = double(options.trilist);
 mean_mesh_surface = surfaceMesh(mean_mesh.verts', mean_mesh.faces');
 writeSurfaceMesh(mean_mesh_surface, "mean_mesh.ply");
 
+% Generate the connectivity matrix
+num_vertices = size(mean_mesh.verts, 2);
+generateMeshConnectivity(options.trilist, num_vertices);
+
 % Load averaged landmarks
 load('averaged_landmarks.mat');
 
@@ -88,7 +92,6 @@ b = FaceModel.eigenValues(1:nOfModes) .* (-3 + (3 + 3) * rand(nOfModes, nOfSampl
 % Calculate the Mahalanobis distance squared
 dMah2 = diag(b' * diag(1 ./ FaceModel.eigenValues(1:nOfModes)) * b);
 
-% Initialize the cell array to store the synthetic generated meshes
 synthetic_meshes = cell(1, nOfSamples);
 
 % Loop to generate and plot synthetic samples
@@ -120,10 +123,10 @@ for i = 1:nOfSamples % nOfSamples
     end
     
     % Export the synthetic mesh to PLY using surfaceMesh
-    synthetic_mesh_surface = surfaceMesh(mesh_s.verts', mesh_s.faces()');
+    synthetic_mesh_surface = surfaceMesh(mesh_s.verts', mesh_s.faces');
     writeSurfaceMesh(synthetic_mesh_surface, sprintf('synthetic_mesh_%d.ply', i));
 end
 
 % Generate interpolations between the mean mesh and synthetic meshes
-steps = 25; % Number of intermediate steps
+steps = 10; % Number of intermediate steps
 generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vertices);
