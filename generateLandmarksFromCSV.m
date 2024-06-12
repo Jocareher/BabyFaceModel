@@ -1,8 +1,8 @@
-function generateLandmarksFromCSV(folder_path, k)
-% GENERATELANDMARKSFROMCSV Generates landmarks from CSV files.
-%   generateLandmarksFromCSV(FOLDER_PATH, K) reads all CSV files in the
+function generateLandmarksFromCSV(folder_path, k, ring_size)
+% GENERATELANDMARKSFROMCSCBYRINGS Generates landmarks from CSV files.
+%   generateLandmarksFromCSVByRings(FOLDER_PATH, K, RING_SIZE) reads all CSV files in the
 %   specified folder, applies k-means clustering to find K regions, calculates the
-%   five nearest vertices to each region's centroid, and saves the result as a MAT file.
+%   nearest vertices to each region's centroid based on connectivity rings, and saves the result as a MAT file.
 %
 %   Each CSV file should have the following format:
 %   - The first row contains headers: "vtkOriginalPointIds", "Points:0", "Points:1", "Points:2".
@@ -11,6 +11,7 @@ function generateLandmarksFromCSV(folder_path, k)
 %   Inputs:
 %   - folder_path: Path to the folder containing the CSV files.
 %   - k: Number of clusters (regions) to find using k-means clustering.
+%   - ring_size: Number of rings to consider for selecting vertices.
 %
 %   Outputs:
 %   - Saves a MAT file 'averaged_landmarks.mat' containing the closest vertices for each cluster.
@@ -75,22 +76,37 @@ function generateLandmarksFromCSV(folder_path, k)
     end
     
     % Apply k-means clustering to find k regions
-    [idx, centroids] = kmeans(all_vertices, k);
+    [~, centroids] = kmeans(all_vertices, k);
     
     % Initialize the cell array to store the closest vertices for each cluster
     closest_vertices = cell(1, k);
     
-    % Calculate the closest vertices for each cluster
+    % Load the triangulation data (assuming you have it as a connectivity list)
+    % You might need to load or define the connectivity data for the vertices
+    load('connectivity.mat', 'connectivity'); % Connectivity should be a cell array where each cell contains the indices of connected vertices
+
+    % Calculate the closest vertices for each cluster using ring-based selection
     for region = 1:k
-        cluster_points = all_vertices(idx == region, :);
-        cluster_indices = all_indices(idx == region);
+        % Get the central vertex of the cluster
+        central_vertex = centroids(region, :);
         
-        % Calculate the distances from each point to the centroid
-        distances = sqrt(sum((cluster_points - centroids(region, :)).^2, 2));
+        % Initialize the ring with the central vertex
+        ring_vertices = find(ismember(all_vertices, central_vertex, 'rows'));
+        all_selected_vertices = ring_vertices;
         
-        % Find the indices of the five closest vertices
-        [~, sorted_indices] = sort(distances);
-        closest_vertices{region} = cluster_indices(sorted_indices(1:5));
+        for r = 1:ring_size
+            new_ring_vertices = [];
+            for v = ring_vertices
+                new_ring_vertices = [new_ring_vertices; connectivity{v}'];
+            end
+            new_ring_vertices = unique(new_ring_vertices);
+            all_selected_vertices = [all_selected_vertices; new_ring_vertices];
+            ring_vertices = new_ring_vertices;
+        end
+        all_selected_vertices = unique(all_selected_vertices);
+        
+        % Select the vertices for this cluster
+        closest_vertices{region} = all_selected_vertices(1:min(5, length(all_selected_vertices)));
     end
     
     % Save the results in a MAT file
