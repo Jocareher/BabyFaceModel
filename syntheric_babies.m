@@ -135,6 +135,9 @@ for i = 1:nOfSamples % nOfSamples
     writeSurfaceMesh(synthetic_mesh_surface, sprintf('synthetic_mesh_%d.ply', i));
 end
 
+% Perform PCA on the mean mesh and synthetic meshes
+[coeff, score, latent, mean_verts] = performPCA([mean_mesh, synthetic_meshes]);
+
 % Generate interpolations between the mean mesh and synthetic meshes
 steps = 10; % Number of intermediate steps
-generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vertices);
+generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vertices, coeff, score, mean_verts);
