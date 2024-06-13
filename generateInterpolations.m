@@ -49,9 +49,9 @@ function generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vert
             plotAndSaveFrame(interpolated_mesh, closest_vertices, -90, elevation_angle, v_left);
 
             % Save the interpolated mesh to a PLY file
-            filename = sprintf('interpolated_mesh_%d_step_%d.ply', i, s);
-            interpolated_mesh_surface = surfaceMesh(interpolated_mesh.verts', interpolated_mesh.faces');
-            writeSurfaceMesh(interpolated_mesh_surface, filename);
+            %filename = sprintf('interpolated_mesh_%d_step_%d.ply', i, s);
+            %interpolated_mesh_surface = surfaceMesh(interpolated_mesh.verts', interpolated_mesh.faces');
+            %writeSurfaceMesh(interpolated_mesh_surface, filename);
 
             % Add a pause to make the animation slower
             pause(0.2); % Pause for 0.2 seconds

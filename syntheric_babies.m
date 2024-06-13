@@ -1,4 +1,4 @@
-% Define an anonymous function to reshape input to 3xN format
+% Define an anonymous function para reshape input to 3xN format
 rsp = @(x) reshape(x, 3,[]);
 
 % LOAD BABY MODEL
@@ -51,8 +51,6 @@ writeSurfaceMesh(mean_mesh_surface, "mean_mesh.ply");
 %disp('Triangulation List:');
 %disp(options.trilist);
 
-
-
 % Generate the connectivity matrix
 %num_vertices = size(mean_mesh.verts, 2);
 %disp('Number of vertices:');
@@ -91,9 +89,6 @@ var = 99; % 99
 % Determine the number of modes needed to reach the specified variance
 nOfModes = find(cumsum(FaceModel.pctVar_per_eigen) > var, 1);
 
-% Calculate the chi-squared inverse for the number of modes
-beta2 = chi2inv(chi_squared, nOfModes);
-
 % Generate random coefficients for the eigenvalues within a range
 b = FaceModel.eigenValues(1:nOfModes) .* (-3 + (3 + 3) * rand(nOfModes, nOfSamples)) * 10^6;
 %b = b';
@@ -109,8 +104,6 @@ for i = 1:nOfSamples % nOfSamples
     % Reshape the result to 3xN format
     rec = rsp(aux);
 
-    % Calculate the chi-squared inverse for the number of modes
-    beta2 = chi2inv(chi_squared, nOfModes);
     figure;
     % Create a structure for the synthetic mesh
     mesh_s.verts = rec;
@@ -135,9 +128,12 @@ for i = 1:nOfSamples % nOfSamples
     writeSurfaceMesh(synthetic_mesh_surface, sprintf('synthetic_mesh_%d.ply', i));
 end
 
+% Convert mean_mesh to cell and concatenate with synthetic_meshes
+all_meshes = [ {mean_mesh}, synthetic_meshes ];
+
 % Perform PCA on the mean mesh and synthetic meshes
-[coeff, score, latent, mean_verts] = performPCA([mean_mesh, synthetic_meshes]);
+[coeff, score, latent, mean_verts] = performPCA(all_meshes);
 
 % Generate interpolations between the mean mesh and synthetic meshes
-steps = 10; % Number of intermediate steps
+steps = 5; % Number of intermediate steps
 generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vertices, coeff, score, mean_verts);
