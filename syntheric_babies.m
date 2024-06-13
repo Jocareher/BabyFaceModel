@@ -135,5 +135,5 @@ all_meshes = [ {mean_mesh}, synthetic_meshes ];
 [coeff, score, latent, mean_verts] = performPCA(all_meshes);
 
 % Generate interpolations between the mean mesh and synthetic meshes
-steps = 5; % Number of intermediate steps
+steps = 25; % Number of intermediate steps
 generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vertices, coeff, score, mean_verts);

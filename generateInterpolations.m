@@ -1,4 +1,21 @@
-function generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vertices, coeff, score, mean_verts)
+function generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vertices, coeff, score, mean_verts, save_meshes)
+    % generateInterpolations Generates interpolations between the mean mesh and synthetic meshes.
+    %   generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vertices, coeff, score, mean_verts, save_meshes)
+    %   creates interpolated meshes between a given mean mesh and synthetic meshes, saving the intermediate steps and generating videos from different angles.
+    %
+    %   Inputs:
+    %   - mean_mesh: Struct with fields 'verts' and 'faces' representing the mean mesh.
+    %   - synthetic_meshes: Cell array of structs representing the synthetic meshes.
+    %   - steps: Number of intermediate steps to generate for the interpolation.
+    %   - closest_vertices: Cell array of closest landmark vertex indices for each region.
+    %   - coeff: Principal component coefficients from PCA.
+    %   - score: Principal component scores from PCA.
+    %   - mean_verts: Mean vertex positions from PCA.
+    %   - save_meshes: Boolean indicating whether to save the interpolated meshes to PLY files.
+    %
+    %   Outputs:
+    %   - Generates AVI videos from different angles and optionally saves interpolated meshes as PLY files.
+
     % Number of synthetic meshes
     num_meshes = length(synthetic_meshes);
 
@@ -48,10 +65,12 @@ function generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vert
             plotAndSaveFrame(interpolated_mesh, closest_vertices, 90, elevation_angle, v_right);
             plotAndSaveFrame(interpolated_mesh, closest_vertices, -90, elevation_angle, v_left);
 
-            % Save the interpolated mesh to a PLY file
-            %filename = sprintf('interpolated_mesh_%d_step_%d.ply', i, s);
-            %interpolated_mesh_surface = surfaceMesh(interpolated_mesh.verts', interpolated_mesh.faces');
-            %writeSurfaceMesh(interpolated_mesh_surface, filename);
+            % Save the interpolated mesh to a PLY file if save_meshes is true
+            if save_meshes
+                filename = sprintf('interpolated_mesh_%d_step_%d.ply', i, s);
+                interpolated_mesh_surface = surfaceMesh(interpolated_mesh.verts', interpolated_mesh.faces');
+                writeSurfaceMesh(interpolated_mesh_surface, filename);
+            end
 
             % Add a pause to make the animation slower
             pause(0.2); % Pause for 0.2 seconds
@@ -65,13 +84,23 @@ function generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vert
 end
 
 function plotAndSaveFrame(interpolated_mesh, closest_vertices, azimuth_angle, elevation_angle, video_writer)
-    % Plot the interpolated mesh, plot landmarks, and save the frame to a video.
-    figure;
+    % plotAndSaveFrame Plots the interpolated mesh, plots landmarks, and saves the frame to a video.
+    %   plotAndSaveFrame(interpolated_mesh, closest_vertices, azimuth_angle, elevation_angle, video_writer)
+    %   plots the interpolated mesh, plots landmarks, sets the camera view, captures the frame, and writes it to the video.
+    %
+    %   Inputs:
+    %   - interpolated_mesh: Interpolated mesh structure with fields 'verts' and 'faces'.
+    %   - closest_vertices: Cell array of closest landmark vertex indices for each region.
+    %   - azimuth_angle: Azimuth angle for the view.
+    %   - elevation_angle: Elevation angle for the view.
+    %   - video_writer: VideoWriter object to save the frame.
+    
+    figure; % Create a new figure
     % Plot the interpolated mesh
-    mesh_plot(interpolated_mesh);
-    material([0.3 0.7 0]);
-    colormap([0.9 0.9 0.9]);
-    hold on;
+    mesh_plot(interpolated_mesh); 
+    material([0.3 0.7 0]); % Set material properties
+    colormap([0.9 0.9 0.9]); % Set colormap
+    hold on; % Hold on to add landmarks
 
     % Plot the closest landmarks on the interpolated mesh
     for k = 1:length(closest_vertices)
@@ -83,6 +112,6 @@ function plotAndSaveFrame(interpolated_mesh, closest_vertices, azimuth_angle, el
 
     % Capture the frame for the animation
     frame = getframe(gcf);
-    writeVideo(video_writer, frame);
-    close(gcf);
+    writeVideo(video_writer, frame); % Write the frame to the video
+    close(gcf); % Close the figure
 end
