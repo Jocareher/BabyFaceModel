@@ -138,9 +138,10 @@ all_meshes = [{mean_mesh}, synthetic_meshes];
 %steps = 3; % Number of intermediate steps
 %generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vertices, coeff, score, mean_verts, false);
 
-% Generar y visualizar modos de variación
-num_modes = 5; % Número de modos principales a visualizar
-steps = 10; % Número de pasos de interpolación
-save_meshes = false; % Guardar las mallas interpoladas
+% Generate and visualize mode of variations
+num_modes = 5; % Num of principal modes to visualize
+steps = 20;
+save_meshes = false;
 
+% Generate mode of variation between the mean mesh and synthetic meshes
 generateModesOfVariation(mean_mesh, coeff, mean_verts, num_modes, steps, closest_vertices, save_meshes);

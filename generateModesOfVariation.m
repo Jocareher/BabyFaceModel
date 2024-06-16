@@ -15,6 +15,12 @@ function generateModesOfVariation(mean_mesh, coeff, mean_verts, num_modes, steps
     %   Outputs:
     %       Generates visualizations of the principal modes of variation.
 
+    % Display size of coeff for debugging
+    disp(size(coeff));
+
+    % Ensure num_modes does not exceed the number of columns in coeff
+    num_modes = min(num_modes, size(coeff, 2));
+
     % Prepare the video writers for different angles
     v_frontal = VideoWriter('modes_of_variation_frontal.avi');
     v_right = VideoWriter('modes_of_variation_right.avi');
