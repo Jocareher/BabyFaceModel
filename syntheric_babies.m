@@ -140,8 +140,8 @@ all_meshes = [{mean_mesh}, synthetic_meshes];
 
 % Generate and visualize mode of variations
 num_modes = 5; % Num of principal modes to visualize
-steps = 20;
-save_meshes = false;
+steps = 5;
+save_meshes = true;
 
 % Generate mode of variation between the mean mesh and synthetic meshes
 generateModesOfVariation(mean_mesh, coeff, mean_verts, num_modes, steps, closest_vertices, save_meshes);
