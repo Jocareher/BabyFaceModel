@@ -25,9 +25,9 @@ function generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vert
     v_left = VideoWriter('interpolated_animation_left.avi');
 
     % Set the frame rate for the videos
-    v_frontal.FrameRate = 10;
-    v_right.FrameRate = 10;
-    v_left.FrameRate = 10;
+    v_frontal.FrameRate = 15;
+    v_right.FrameRate = 15;
+    v_left.FrameRate = 15;
 
     % Open the video writers
     open(v_frontal);
@@ -73,7 +73,7 @@ function generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vert
             end
 
             % Add a pause to make the animation slower
-            pause(0.2); % Pause for 0.2 seconds
+            pause(0.5); % Pause for 0.2 seconds
         end
     end
 

@@ -29,11 +29,12 @@ function [coeff, score, latent, mean_verts] = performPCA(meshes)
     reshaped_data = zeros(num_points * dim, num_meshes);
     
     for i = 1:num_meshes
-        reshaped_data(:, i) = meshes{i}.verts(:); % Reshape each mesh's vertices into a column vector
+         % Reshape each mesh's vertices into a column vector
+        reshaped_data(:, i) = meshes{i}.verts(:);
     end
     
-    % Perform PCA
-    [coeff, score, latent] = pca(reshaped_data'); % Perform PCA on the transposed reshaped data
+     % Perform PCA on the transposed reshaped data
+    [coeff, score, latent] = pca(reshaped_data');
     
     % Calculate mean vertices
     mean_verts = mean(reshaped_data, 2);

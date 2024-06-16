@@ -1,6 +1,6 @@
 function generateLandmarksFromCSV(folder_path, k, ring_size)
-    % GENERATELANDMARKSFROMCSCBYRINGS Generates landmarks from CSV files.
-    %   generateLandmarksFromCSVByRings(FOLDER_PATH, K, RING_SIZE) reads all CSV files in the
+    % generateLandmarksFromCSV Generates landmarks from CSV files.
+    %   generateLandmarksFromCSVByRings(folder_path, K, ring_size) reads all CSV files in the
     %   specified folder, applies k-means clustering to find K regions, calculates the
     %   nearest vertices to each region's centroid based on connectivity rings, and saves the result as a MAT file.
     %
@@ -55,7 +55,7 @@ function generateLandmarksFromCSV(folder_path, k, ring_size)
     end
     
     % Preallocate arrays (for vertex and indices)
-    all_vertices = zeros(total_vertices, 3)
+    all_vertices = zeros(total_vertices, 3);
     all_indices = zeros(total_vertices, 1);
     
     % Second pass to read the data
@@ -134,7 +134,7 @@ function generateLandmarksFromCSV(folder_path, k, ring_size)
             % Initialize a list for the new ring vertices
             new_ring_vertices = []; 
             for v = ring_vertices'
-                 % Add the connected vertices to the ring
+                % Add the connected vertices to the ring
                 new_ring_vertices = [new_ring_vertices; connectivity{v}(:)];
             end
             % Remove duplicate vertices
