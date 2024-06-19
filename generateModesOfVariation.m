@@ -1,4 +1,4 @@
-function generateModesOfVariation(mean_mesh, coeff, mean_verts, num_modes, steps, closest_vertices, save_meshes)
+function generateModesOfVariation(mean_mesh, coeff, mean_verts, num_modes, steps, closest_vertices, sigma, save_meshes)
     % generateModesOfVariation Generates and visualizes modes of variation.
     %   This function creates visualizations of the principal modes of variation 
     %   in a set of 3D meshes using Principal Component Analysis (PCA). 
@@ -13,6 +13,7 @@ function generateModesOfVariation(mean_mesh, coeff, mean_verts, num_modes, steps
     %       num_modes (int): Number of principal modes to visualize.
     %       steps (int): Number of interpolation steps between -alpha and +alpha.
     %       closest_vertices (cell array): Cell array of closest landmark vertex indices for each region.
+    %       sigma (double): 
     %       save_meshes (bool): Flag to save the interpolated meshes as PLY files.
     %
     %   Outputs:
@@ -48,7 +49,7 @@ function generateModesOfVariation(mean_mesh, coeff, mean_verts, num_modes, steps
         % Loop through each interpolation step
         for s = -steps:steps
             % Linear interpolation coefficient
-            alpha = s / steps;
+            alpha =  sigma * s / steps;
 
             % Modify the mean vertices by the principal mode
             interpolated_verts = mean_verts(:) + alpha * coeff(:, mode);
