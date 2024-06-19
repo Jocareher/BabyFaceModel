@@ -11,14 +11,25 @@ function generateModesOfVariation(mean_mesh, coeff, mean_verts, num_modes, steps
     %       coeff (matrix): PCA coefficients (eigenvectors) where each column corresponds to a principal mode.
     %       mean_verts (matrix): Mean vertices of the mesh.
     %       num_modes (int): Number of principal modes to visualize.
-    %       steps (int): Number of interpolation steps between -alpha and +alpha.
+    %       steps (int): Number of interpolation steps between -sigma and +sigma.
     %       closest_vertices (cell array): Cell array of closest landmark vertex indices for each region.
-    %       sigma (double): 
+    %       sigma (double): Standard deviation factor for scaling the principal component variations.
     %       save_meshes (bool): Flag to save the interpolated meshes as PLY files.
     %
     %   Outputs:
     %       Generates visualizations of the principal modes of variation.
     %       If save_meshes is true, saves the interpolated meshes as PLY files with colored landmarks.
+    %
+    %   The function follows these steps:
+    %   1. Initializes video writers for recording the animations from different angles.
+    %   2. For each principal mode (up to num_modes):
+    %       a. Interpolates the mean vertices by scaling the principal mode with a factor 
+    %          ranging from -sigma to +sigma in steps.
+    %       b. Reshapes the interpolated vertices to the original vertex size.
+    %       c. Creates an interpolated mesh structure.
+    %       d. Plots and saves frames from different angles.
+    %       e. Optionally saves the interpolated mesh to a PLY file with colored landmarks.
+    %   3. Closes the video writers after recording.
 
     % Display size of coeff for debugging
     disp(size(coeff));

@@ -48,7 +48,7 @@ function generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vert
             alpha = s / steps;
 
             % Interpolate in the PCA space
-            interpolated_score = alpha * synth  etic_score;
+            interpolated_score = alpha * synthetic_score;
 
             % Convert the interpolated score back to vertex space
             interpolated_verts = mean_verts(:) + coeff * interpolated_score';

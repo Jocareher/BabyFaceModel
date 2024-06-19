@@ -139,9 +139,9 @@ all_meshes = [{mean_mesh}, synthetic_meshes];
 %generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vertices, coeff, score, mean_verts, false);
 
 % Generate and visualize mode of variations
-num_modes = 5; % Num of principal modes to visualize
+num_modes = 10; % Num of principal modes to visualize
 steps = 10;
-sigma = 0.25;
+sigma = 0.1;
 save_meshes = true;
 
 % Generate mode of variation between the mean mesh and synthetic meshes
