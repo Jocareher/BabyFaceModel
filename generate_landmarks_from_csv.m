@@ -41,7 +41,7 @@ function generate_landmarks_from_csv(folder_path)
     end
     
     % Apply k-means clustering to find 6 regions
-    k = 6;
+    k = 8;
     [idx, ~] = kmeans(all_vertices, k);
     
     % Initialize the array to store the averaged landmarks
