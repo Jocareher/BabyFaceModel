@@ -1,8 +1,8 @@
-function generateLandmarksFromCSV(folder_path, k, ring_size)
+function generateLandmarksFromCSV(folder_path, k, selection_mode, varargin)
     % generateLandmarksFromCSV Generates landmarks from CSV files.
-    %   generateLandmarksFromCSVByRings(folder_path, K, ring_size) reads all CSV files in the
-    %   specified folder, applies k-means clustering to find K regions, calculates the
-    %   nearest vertices to each region's centroid based on connectivity rings, and saves the result as a MAT file.
+    %   generateLandmarksFromCSVByRings(folder_path, k, selection_mode, varargin) 
+    %   reads all CSV files in the specified folder, applies k-means clustering to find K regions, calculates the
+    %   nearest vertices to each region's centroid based on the specified selection mode, and saves the result as a MAT file.
     %
     %   Each CSV file should have the following format:
     %   - The first row contains headers: "vtkOriginalPointIds", "Points:0", "Points:1", "Points:2".
@@ -11,17 +11,36 @@ function generateLandmarksFromCSV(folder_path, k, ring_size)
     %   Inputs:
     %   - folder_path: Path to the folder containing the CSV files.
     %   - k: Number of clusters (regions) to find using k-means clustering.
-    %   - ring_size: Number of rings to consider for selecting vertices.
+    %   - selection_mode: Mode of selection ('ring', 'centroid', 'closest').
+    %   - varargin: Additional arguments depending on selection_mode:
+    %       'ring': ring_size, output_file
+    %       'closest': num_closest, output_file
+    %       'centroid': output_file
     %
     %   Outputs:
-    %   - Saves a MAT file 'averaged_landmarks_per_ring.mat' containing the closest vertices for each cluster.
-    %
-    %   The function follows these steps:
-    %   1. Counts the total number of vertices from all CSV files.
-    %   2. Reads and stores the vertices and their indices.
-    %   3. Applies k-means clustering to group vertices into k regions.
-    %   4. For each region, selects vertices in concentric rings around the centroid.
-    %   5. Saves the selected vertices for each region in a MAT file.
+    %   - Saves a MAT file containing the closest vertices for each cluster based on the selection mode.
+
+    % Parse varargin based on selection_mode
+    if strcmp(selection_mode, 'ring')
+        if length(varargin) ~= 2
+            error('For ''ring'' mode, you must provide ring_size and output_file.');
+        end
+        ring_size = varargin{1};
+        output_file = varargin{2};
+    elseif strcmp(selection_mode, 'closest')
+        if length(varargin) ~= 2
+            error('For ''closest'' mode, you must provide num_closest and output_file.');
+        end
+        num_closest = varargin{1};
+        output_file = varargin{2};
+    elseif strcmp(selection_mode, 'centroid')
+        if length(varargin) ~= 1
+            error('For ''centroid'' mode, you must provide output_file.');
+        end
+        output_file = varargin{1};
+    else
+        error('Invalid selection mode. Choose from ''ring'', ''centroid'', or ''closest''.');
+    end
 
     % Get the list of CSV files in the specified folder
     files = dir(fullfile(folder_path, '*.csv')); % Get the list of CSV files in the specified folder
@@ -113,7 +132,7 @@ function generateLandmarksFromCSV(folder_path, k, ring_size)
     % Connectivity should be a cell array where each cell contains the indices of connected vertices
     load('connectivity.mat', 'connectivity'); 
 
-    % Calculate the closest vertices for each cluster using ring-based selection
+    % Calculate the closest vertices for each cluster using the specified selection mode
     for region = 1:k
         % Get the central vertex of the cluster
         central_vertex = centroids(region, :);
@@ -127,28 +146,43 @@ function generateLandmarksFromCSV(folder_path, k, ring_size)
         disp(['Ring vertices for region ', num2str(region), ':']);
         disp(ring_vertices);
         
-        % Initialize all selected vertices with the ring vertices
-        all_selected_vertices = ring_vertices; 
-        
-        for r = 1:ring_size
-            % Initialize a list for the new ring vertices
-            new_ring_vertices = []; 
-            for v = ring_vertices'
-                % Add the connected vertices to the ring
-                new_ring_vertices = [new_ring_vertices; connectivity{v}(:)];
-            end
-            % Remove duplicate vertices
-            new_ring_vertices = unique(new_ring_vertices);
-            % Add the new ring vertices to the selected vertices
-            all_selected_vertices = [all_selected_vertices; new_ring_vertices];
-            % Update the ring vertices
-            ring_vertices = new_ring_vertices;
+        switch selection_mode
+            case 'ring'
+                % Initialize all selected vertices with the ring vertices
+                all_selected_vertices = ring_vertices; 
+
+                for r = 1:ring_size
+                    % Initialize a list for the new ring vertices
+                    new_ring_vertices = []; 
+                    for v = ring_vertices'
+                        % Add the connected vertices to the ring
+                        new_ring_vertices = [new_ring_vertices; connectivity{v}(:)];
+                    end
+                    % Remove duplicate vertices
+                    new_ring_vertices = unique(new_ring_vertices);
+                    % Add the new ring vertices to the selected vertices
+                    all_selected_vertices = [all_selected_vertices; new_ring_vertices];
+                    % Update the ring vertices
+                    ring_vertices = new_ring_vertices;
+                end
+                % Remove duplicate vertices
+                all_selected_vertices = unique(all_selected_vertices);
+
+                % Select the vertices for this cluster
+                closest_vertices{region} = all_selected_vertices(1:min(5, length(all_selected_vertices)));
+                
+            case 'centroid'
+                % Select only the centroid for this cluster
+                closest_vertices{region} = min_idx;
+                
+            case 'closest'
+                % Find the n closest vertices to the centroid
+                [~, sorted_indices] = sort(distances);
+                closest_vertices{region} = sorted_indices(1:num_closest);
+                
+            otherwise
+                error('Invalid selection mode. Choose from ''ring'', ''centroid'', or ''closest''.');
         end
-        % Remove duplicate vertices
-        all_selected_vertices = unique(all_selected_vertices);
-        
-        % Select the vertices for this cluster
-        closest_vertices{region} = all_selected_vertices(1:min(5, length(all_selected_vertices)));
         
         % Display the selected vertices for debugging
         disp(['Selected vertices for region ', num2str(region), ':']);
@@ -156,5 +190,5 @@ function generateLandmarksFromCSV(folder_path, k, ring_size)
     end
     
     % Save the results in a MAT file
-    save('averaged_landmarks_per_ring.mat', 'closest_vertices', 'centroids', 'all_vertices', 'all_indices'); % Save the results in a MAT file
+    save(output_file, 'closest_vertices', 'centroids', 'all_vertices', 'all_indices'); % Save the results in a MAT file
 end

@@ -58,7 +58,7 @@ writeSurfaceMesh(mean_mesh_surface, "mean_mesh.ply");
 %generateMeshConnectivity(options.trilist', num_vertices);
 
 % Load averaged landmarks
-load('averaged_landmarks.mat');
+load('centroids_landmarks.mat');
 
 % MEAN + LANDMARKS MODEL
 figure;
