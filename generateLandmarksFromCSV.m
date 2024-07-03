@@ -119,12 +119,29 @@ function generateLandmarksFromCSV(folder_path, k, selection_mode, varargin)
     disp(all_indices);
     
     % Apply k-means clustering to find k regions
-    [~, centroids] = kmeans(all_vertices, k);
+    [idx, centroids] = kmeans(all_vertices, k);
     
     % Display centroids for debugging
     disp('Centroids:');
     disp(centroids);
     
+    % Plot the vertices
+    figure;
+    scatter3(all_vertices(:, 1), all_vertices(:, 2), all_vertices(:, 3), 10, idx, 'filled');
+    title('K-means Clustering of Vertices');
+    xlabel('X');
+    ylabel('Y');
+    zlabel('Z');
+    grid on;
+    
+    % Plot the centroids
+    figure;
+    scatter3(centroids(:, 1), centroids(:, 2), centroids(:, 3), 100, 'r', 'filled');
+    title('Centroids of K-means Clusters');
+    xlabel('X');
+    ylabel('Y');
+    zlabel('Z');
+    grid on;
     % Initialize the cell array to store the closest vertices for each cluster
     closest_vertices = cell(1, k);
     

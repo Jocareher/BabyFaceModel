@@ -57,7 +57,7 @@ writeSurfaceMesh(mean_mesh_surface, "mean_mesh.ply");
 %disp(num_vertices);
 %generateMeshConnectivity(options.trilist', num_vertices);
 
-% Load averaged landmarks
+% Load the appropriate landmarks file
 load('centroids_landmarks.mat');
 
 % MEAN + LANDMARKS MODEL
@@ -78,6 +78,10 @@ text(mean_mesh.verts(1, options.lmks_vertsIND(:)), mean_mesh.verts(2, options.lm
 for k = 1:length(closest_vertices)
     plot3(mean_mesh.verts(1, closest_vertices{k}), mean_mesh.verts(2, closest_vertices{k}), mean_mesh.verts(3, closest_vertices{k}), '*b');
 end
+
+% Display additional debug information
+disp('Averaged landmarks:');
+disp(closest_vertices);
 
 %% GENERATE SYNTHETIC DATASET
 % Number of samples to generate
