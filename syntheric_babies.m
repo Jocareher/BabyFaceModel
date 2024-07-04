@@ -156,5 +156,5 @@ sigma = 0.1;
 save_meshes = true;
 
 % Generate mode of variation between the mean mesh and synthetic meshes
-generateModesOfVariation(mean_mesh, coeff, mean_verts, num_modes, steps, closest_vertices, sigma, save_meshes);
+generateModesOfVariation(mean_mesh, coeff, mean_verts, num_modes, steps, closest_vertices, options.lmks_vertsIND, sigma, save_meshes);
 
