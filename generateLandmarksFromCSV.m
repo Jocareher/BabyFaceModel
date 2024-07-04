@@ -142,6 +142,7 @@ function generateLandmarksFromCSV(folder_path, k, selection_mode, varargin)
     ylabel('Y');
     zlabel('Z');
     grid on;
+    
     % Initialize the cell array to store the closest vertices for each cluster
     closest_vertices = cell(1, k);
     
@@ -189,13 +190,13 @@ function generateLandmarksFromCSV(folder_path, k, selection_mode, varargin)
                 closest_vertices{region} = all_selected_vertices(1:min(5, length(all_selected_vertices)));
                 
             case 'centroid'
-                % Select only the centroid for this cluster
-                closest_vertices{region} = min_idx;
+                % Select only the index of the centroid for this cluster
+                closest_vertices{region} = all_indices(min_idx);
                 
             case 'closest'
                 % Find the n closest vertices to the centroid
                 [~, sorted_indices] = sort(distances);
-                closest_vertices{region} = sorted_indices(1:num_closest);
+                closest_vertices{region} = all_indices(sorted_indices(1:num_closest));
                 
             otherwise
                 error('Invalid selection mode. Choose from ''ring'', ''centroid'', or ''closest''.');

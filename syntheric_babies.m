@@ -10,7 +10,6 @@ load('BabyFaceModel.mat');
 FaceModel = BabyFaceModel;
 
 % Baby morphable model characteristics
-
 % Set the variance for the model
 options.var = 98;
 var = '_var_98';
@@ -58,7 +57,7 @@ writeSurfaceMesh(mean_mesh_surface, "mean_mesh.ply");
 %generateMeshConnectivity(options.trilist', num_vertices);
 
 % Load the appropriate landmarks file
-load('centroids_landmarks.mat');
+load('centroids_landmarks_2.mat');
 
 % MEAN + LANDMARKS MODEL
 figure;
@@ -76,12 +75,13 @@ text(mean_mesh.verts(1, options.lmks_vertsIND(:)), mean_mesh.verts(2, options.lm
 
 % Plot the averaged landmarks on the mesh
 for k = 1:length(closest_vertices)
-    plot3(mean_mesh.verts(1, closest_vertices{k}), mean_mesh.verts(2, closest_vertices{k}), mean_mesh.verts(3, closest_vertices{k}), '*b');
+    idx = closest_vertices{k}; % corregir para extraer el índice del cell array
+    plot3(mean_mesh.verts(1, idx), mean_mesh.verts(2, idx), mean_mesh.verts(3, idx), '*b');
 end
 
 % Display additional debug information
-disp('Averaged landmarks:');
-disp(closest_vertices);
+%disp('Averaged landmarks:');
+%disp(closest_vertices);
 
 %% GENERATE SYNTHETIC DATASET
 % Number of samples to generate
@@ -124,7 +124,8 @@ for i = 1:nOfSamples % nOfSamples
     % Plot the closest landmarks on the synthetic mesh
     hold on;
     for k = 1:length(closest_vertices)
-        plot3(mesh_s.verts(1, closest_vertices{k}), mesh_s.verts(2, closest_vertices{k}), mesh_s.verts(3, closest_vertices{k}), '*b');
+        idx = closest_vertices{k}; % corregir para extraer el índice del cell array
+        plot3(mesh_s.verts(1, idx), mesh_s.verts(2, idx), mesh_s.verts(3, idx), '*b');
     end
     
     % Export the synthetic mesh to PLY using surfaceMesh
