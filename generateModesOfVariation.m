@@ -1,9 +1,9 @@
-function generateModesOfVariation(mean_mesh, coeff, mean_verts, num_modes, steps, closest_vertices, sigma, save_meshes)
+function generateModesOfVariation(mean_mesh, coeff, mean_verts, num_modes, steps, closest_vertices, original_landmarks, sigma, save_meshes)
     % generateModesOfVariation Generates and visualizes modes of variation.
-    %   This function creates visualizations of the principal modes of variation 
-    %   in a set of 3D meshes using Principal Component Analysis (PCA). 
+    %   This function creates visualizations of the principal modes of variation
+    %   in a set of 3D meshes using Principal Component Analysis (PCA).
     %   It interpolates between the mean shape and variations along the principal modes,
-    %   generates animations of these variations, and optionally saves the interpolated 
+    %   generates animations of these variations, and optionally saves the interpolated
     %   meshes as PLY files with colored landmarks.
     %
     %   Inputs:
@@ -13,23 +13,13 @@ function generateModesOfVariation(mean_mesh, coeff, mean_verts, num_modes, steps
     %       num_modes (int): Number of principal modes to visualize.
     %       steps (int): Number of interpolation steps between -sigma and +sigma.
     %       closest_vertices (cell array): Cell array of closest landmark vertex indices for each region.
+    %       original_landmarks (array): Array of indices of the original landmarks.
     %       sigma (double): Standard deviation factor for scaling the principal component variations.
     %       save_meshes (bool): Flag to save the interpolated meshes as PLY files.
     %
     %   Outputs:
     %       Generates visualizations of the principal modes of variation.
     %       If save_meshes is true, saves the interpolated meshes as PLY files with colored landmarks.
-    %
-    %   The function follows these steps:
-    %   1. Initializes video writers for recording the animations from different angles.
-    %   2. For each principal mode (up to num_modes):
-    %       a. Interpolates the mean vertices by scaling the principal mode with a factor 
-    %          ranging from -sigma to +sigma in steps.
-    %       b. Reshapes the interpolated vertices to the original vertex size.
-    %       c. Creates an interpolated mesh structure.
-    %       d. Plots and saves frames from different angles.
-    %       e. Optionally saves the interpolated mesh to a PLY file with colored landmarks.
-    %   3. Closes the video writers after recording.
 
     % Display size of coeff for debugging
     disp(size(coeff));
@@ -60,7 +50,7 @@ function generateModesOfVariation(mean_mesh, coeff, mean_verts, num_modes, steps
         % Loop through each interpolation step
         for s = -steps:steps
             % Linear interpolation coefficient
-            alpha =  sigma * s / steps;
+            alpha = sigma * s / steps;
 
             % Modify the mean vertices by the principal mode
             interpolated_verts = mean_verts(:) + alpha * coeff(:, mode);
@@ -73,20 +63,25 @@ function generateModesOfVariation(mean_mesh, coeff, mean_verts, num_modes, steps
             interpolated_mesh.faces = mean_mesh.faces;
 
             % Plot and save frames from different angles
-            plotAndSaveFrame(interpolated_mesh, closest_vertices, 0, elevation_angle, v_frontal);
-            plotAndSaveFrame(interpolated_mesh, closest_vertices, 90, elevation_angle, v_right);
-            plotAndSaveFrame(interpolated_mesh, closest_vertices, -90, elevation_angle, v_left);
+            plotAndSaveFrame(interpolated_mesh, closest_vertices, original_landmarks, 0, elevation_angle, v_frontal);
+            plotAndSaveFrame(interpolated_mesh, closest_vertices, original_landmarks, 90, elevation_angle, v_right);
+            plotAndSaveFrame(interpolated_mesh, closest_vertices, original_landmarks, -90, elevation_angle, v_left);
 
             % Save the interpolated mesh to a PLY file if specified
             if save_meshes
                 % Create a matrix for colors (vertices are white by default)
                 colors = repmat([255, 255, 255], size(interpolated_verts, 2), 1);
-                
+
                 % Change the color of the landmarks to red
                 for k = 1:length(closest_vertices)
                     colors(closest_vertices{k}, :) = repmat([255, 0, 0], length(closest_vertices{k}), 1);
                 end
-                
+
+                % Change the color of the original landmarks to blue
+                for k = 1:length(original_landmarks)
+                    colors(original_landmarks(k), :) = [0, 0, 255];
+                end
+
                 % Save the mesh with colors
                 savePlyWithColors(interpolated_mesh.verts', interpolated_mesh.faces', colors, sprintf('mode_%d_step_%d.ply', mode, s + steps + 1));
             end

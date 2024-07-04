@@ -1,6 +1,6 @@
-function generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vertices, coeff, score, mean_verts, save_meshes)
+function generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vertices, original_landmarks, coeff, score, mean_verts, save_meshes)
     % generateInterpolations Generates interpolations between the mean mesh and synthetic meshes.
-    %   generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vertices, coeff, score, mean_verts, save_meshes)
+    %   generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vertices, original_landmarks, coeff, score, mean_verts, save_meshes)
     %   creates interpolated meshes between a given mean mesh and synthetic meshes, saving the intermediate steps and generating videos from different angles.
     %
     %   Inputs:
@@ -8,6 +8,7 @@ function generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vert
     %   - synthetic_meshes: Cell array of structs representing the synthetic meshes.
     %   - steps: Number of intermediate steps to generate for the interpolation.
     %   - closest_vertices: Cell array of closest landmark vertex indices for each region.
+    %   - original_landmarks: Array of original landmark vertex indices.
     %   - coeff: Principal component coefficients from PCA.
     %   - score: Principal component scores from PCA.
     %   - mean_verts: Mean vertex positions from PCA.
@@ -61,9 +62,9 @@ function generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vert
             interpolated_mesh.faces = mean_mesh.faces;
 
             % Plot and save frames from different angles
-            plotAndSaveFrame(interpolated_mesh, closest_vertices, 0, elevation_angle, v_frontal);
-            plotAndSaveFrame(interpolated_mesh, closest_vertices, 90, elevation_angle, v_right);
-            plotAndSaveFrame(interpolated_mesh, closest_vertices, -90, elevation_angle, v_left);
+            plotAndSaveFrame(interpolated_mesh, closest_vertices, original_landmarks, 0, elevation_angle, v_frontal);
+            plotAndSaveFrame(interpolated_mesh, closest_vertices, original_landmarks, 90, elevation_angle, v_right);
+            plotAndSaveFrame(interpolated_mesh, closest_vertices, original_landmarks, -90, elevation_angle, v_left);
 
             % Save the interpolated mesh to a PLY file if save_meshes is true
             if save_meshes
