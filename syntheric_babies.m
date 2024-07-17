@@ -85,7 +85,7 @@ end
 
 %% GENERATE SYNTHETIC DATASET
 % Number of samples to generate
-nOfSamples = 1;
+nOfSamples = 20;
 % Chi-squared value for the synthetic data generation
 chi_squared = 0.99; % 0.99
 % Variance for the synthetic data generation
@@ -150,11 +150,11 @@ all_meshes = [{mean_mesh}, synthetic_meshes];
 %generateInterpolations(mean_mesh, synthetic_meshes, steps, closest_vertices, coeff, score, mean_verts, false);
 
 % Generate and visualize mode of variations
-num_modes = 5; % Num of principal modes to visualize
-steps = 10;
-sigma = 0.1;
-save_meshes = true;
+%num_modes = 5; % Num of principal modes to visualize
+%steps = 10;
+%sigma = 0.1;
+%save_meshes = true;
 
 % Generate mode of variation between the mean mesh and synthetic meshes
-generateModesOfVariation(mean_mesh, coeff, mean_verts, num_modes, steps, closest_vertices, options.lmks_vertsIND, sigma, save_meshes);
+%generateModesOfVariation(mean_mesh, coeff, mean_verts, num_modes, steps, closest_vertices, options.lmks_vertsIND, sigma, save_meshes);
 

@@ -4,10 +4,10 @@
 %   the averaged landmarks.
 
 % Path to the folder containing the CSV files
-folder_path = '/Users/jocareher/Library/CloudStorage/OneDrive-Personal/Educación/PhD_UPF_2023/babyfm_matlab/landmarks_regions';
+folder_path = '/Users/jocareher/Library/CloudStorage/OneDrive-Personal/Educación/PhD_UPF_2023/babyfm_matlab/landmarks_regions/version_2';
 
 % Output filename
-output_filename = "centroids_landmarks";
+output_filename = "centroids_landmarks_48";
 
 % Number of clusters
 k = 45;
