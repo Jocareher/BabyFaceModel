@@ -107,7 +107,7 @@ function generateLandmarksFromCSV(folder_path, k, selection_mode, varargin)
             % Store the vertex coordinates
             all_vertices(current_idx, :) = [x_coord, y_coord, z_coord];
             % Store the vertex index
-            all_indices{current_idx{} = index;
+            all_indices[current_idx] = index;
             current_idx = current_idx + 1;
         end
     end
@@ -119,7 +119,19 @@ function generateLandmarksFromCSV(folder_path, k, selection_mode, varargin)
     disp(all_indices);
 
     % Calculate initial centroids
-    initial_centroids = calculateInitialCentroidsFromData(all_vertices, num_landmarks);
+    initial_centroids = calculateInitialCentroids(folder_path, k);
+    
+    % Visualize initial centroids
+    figure;
+    scatter3(all_vertices(:, 1), all_vertices(:, 2), all_vertices(:, 3), 10, 'b', 'filled');
+    hold on;
+    scatter3(initial_centroids(:, 1), initial_centroids(:, 2), initial_centroids(:, 3), 100, 'r', 'filled');
+    title('Initial Centroids for K-means');
+    xlabel('X');
+    ylabel('Y');
+    zlabel('Z');
+    grid on;
+    hold off;
     
     % Apply k-means clustering to find k regions with initial centroids
     [idx, centroids] = kmeans(all_vertices, k, 'Start', initial_centroids);

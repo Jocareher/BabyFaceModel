@@ -1,6 +1,6 @@
-function generateLandmarksFromCSV(folder_path, k, selection_mode, varargin)
+function generateLandmarksFromCSV(folder_path, k, initial_centroids, selection_mode, varargin)
     % generateLandmarksFromCSV Generates landmarks from CSV files.
-    %   generateLandmarksFromCSVByRings(folder_path, k, selection_mode, varargin) 
+    %   generateLandmarksFromCSVByRings(folder_path, k, initial_centroids, selection_mode, varargin) 
     %   reads all CSV files in the specified folder, applies k-means clustering to find K regions, calculates the
     %   nearest vertices to each region's centroid based on the specified selection mode, and saves the result as a MAT file.
     %
@@ -11,6 +11,7 @@ function generateLandmarksFromCSV(folder_path, k, selection_mode, varargin)
     %   Inputs:
     %   - folder_path: Path to the folder containing the CSV files.
     %   - k: Number of clusters (regions) to find using k-means clustering.
+    %   - initial_centroids: Initial centroids for K-means.
     %   - selection_mode: Mode of selection ('ring', 'centroid', 'closest').
     %   - varargin: Additional arguments depending on selection_mode:
     %       'ring': ring_size, output_file
@@ -118,8 +119,8 @@ function generateLandmarksFromCSV(folder_path, k, selection_mode, varargin)
     disp('All indices:');
     disp(all_indices);
     
-    % Apply k-means clustering to find k regions
-    [idx, centroids] = kmeans(all_vertices, k);
+    % Apply k-means clustering with initial centroids
+    [idx, centroids] = kmeans(all_vertices, k, 'Start', initial_centroids);
     
     % Display centroids for debugging
     disp('Centroids:');
