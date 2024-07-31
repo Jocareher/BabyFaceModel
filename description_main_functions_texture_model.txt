@@ -1,0 +1,66 @@
+Roles of Updated Functions
+==========================
+
+1. render_images_FLR_modif
+--------------------------
+Role:
+This function generates 2D images from a 3D mesh model with various views. It takes a 3D mesh model and its corresponding texture to generate synthetic images from different views (frontal, left, right) by applying specified rotations. The function supports options to handle landmark coordinates, scaling, and output file saving.
+
+Usage in Main Script:
+- In the main script, the function render_images_FLR_modif is used to generate synthetic images of the 3D models with different views (frontal, left, right).
+- File reading: The function can read files containing the 3D model and texture, or it can use preprocessed data directly if read_files is false.
+- Rotation and alignment: Applies rotations to the 3D models to align them to the frontal view and then to the side views.
+- Image generation: Uses rendering techniques to generate images from the specified views.
+- Normalization and scaling: Adjusts the scale of the generated images to ensure an appropriate size.
+- Saving results: Optionally saves the generated images and landmark positions to specific files.
+This function is essential for creating synthetic datasets where multiple views of a 3D model with corresponding textures and landmarks are needed for various computer vision and graphics applications.
+
+2. apply_procrustes2lmks
+------------------------
+Role:
+This function applies a Procrustes transformation to align two sets of landmarks. It determines a linear transformation (translation, reflection, orthogonal rotation, and scaling) to best align the points in lmks2 to the points in lmks1 and then applies this transformation to the landmarks and the 3D face mesh.
+
+Usage in Main Script:
+- In the main script, the function apply_procrustes2lmks is used to align a set of landmarks from a 3D model (face2) with a reference set of landmarks (lmks1). This is crucial to ensure that the generated models are correctly oriented and aligned before generating synthetic images.
+- Landmark alignment: The function takes two sets of landmarks (lmks1 and lmks2) and calculates the best transformation that aligns lmks2 with lmks1.
+- 3D model transformation: Uses the transformation obtained from the landmarks to adjust the position, rotation, and scale of the 3D model (face2), ensuring it is correctly aligned with the reference model.
+- Image generation use: This alignment is essential before rendering synthetic images, ensuring that the generated views (frontal, left, right) are based on a correctly oriented model.
+The function is fundamental to maintain the coherence and accuracy of the 3D models and their corresponding landmarks, allowing for the generation of realistic and consistent synthetic images.
+
+3. z_buffering_modif
+---------------------
+Role:
+This function performs z-buffering to project a 3D mesh onto a 2D image plane. It projects a 3D mesh onto a 2D image plane using z-buffering, which helps determine the visibility of surfaces. It supports camera and transformation matrices, distortion correction, and optional landmark projections.
+
+Usage in Main Script:
+- In the main script, the function z_buffering_modif is used to project the 3D model onto a 2D plane and generate synthetic images using z-buffering. This allows determining which parts of the 3D model are visible from a specific perspective and rendering them correctly in a 2D image.
+- 3D to 2D projection: Projects the vertices of the 3D model onto the image plane using a camera matrix and a transformation matrix.
+- Z-buffering: Uses a depth buffer (z-buffer) to maintain depth information of the pixels, ensuring that surfaces closest to the camera are visible.
+- Image generation: Calculates the colors and positions of the projected vertices to generate a 2D image of the 3D model.
+- Landmark handling: Optionally projects and saves the position of specific landmarks in the 2D image.
+This function is crucial for rendering realistic images of the 3D model from different angles, ensuring that hidden parts of the model are not shown and that visible surfaces are rendered with the correct colors.
+
+4. projectPoints
+----------------
+Role:
+This function projects 3D points onto a plane using a camera model. It applies a standard pinhole camera model with optional distortion parameters to project 3D points onto a 2D image plane. It validates the projected points and handles sorting and distortion correction.
+
+Usage in z_buffering_modif:
+- The function projectPoints is fundamental in z_buffering_modif as it performs the projection of 3D points onto the 2D image plane using a camera model.
+- 3D to 2D point projection: projectPoints takes 3D coordinates and projects them onto the 2D image plane, applying the camera matrix and any specified transformation and distortion.
+- Distortion handling: Corrects radial and tangential distortions in the projected points according to the provided distortion parameters.
+- Point validation: Determines which projected points are valid, i.e., those that are in front of the camera and within the specified image bounds.
+- Optional sorting: Allows sorting points by their distance from the camera, which can be useful for rendering.
+- Projected points output: Returns the projected 2D points along with their intensities and a validity mask.
+This projection is crucial for constructing the depth map and color buffer in z_buffering_modif, ensuring that the 3D points are correctly represented in the 2D image space.
+
+Usage Pipeline
+==============
+1. The main script initiates the process by loading necessary data and setting parameters.
+2. The main script calls render_images_FLR_modif to generate synthetic images.
+   - render_images_FLR_modif aligns the 3D mesh using apply_procrustes2lmks.
+   - render_images_FLR_modif then calls z_buffering_modif to perform z-buffering and render the 3D mesh onto 2D images.
+     - z_buffering_modif calls projectPoints to project 3D points onto the 2D image plane with distortion correction and validation.
+3. The functions work together to ensure that the 3D model is accurately aligned, projected, and rendered into 2D images with correct depth and visibility handling.
+
+
