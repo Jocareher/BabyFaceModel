@@ -1,9 +1,12 @@
+clear all
+
+
 % Define an anonymous function para reshape input to 3xN format
 rsp = @(x) reshape(x, 3,[]);
 
 % LOAD BABY MODEL
 % Add the path to the Matlab utilities
-addpath(genpath('Matlab_utils'))
+addpath(genpath('matlab_utils'))
 % Load the baby face model from a .mat file
 load('BabyFaceModel.mat');
 % Assign the loaded model to a variable
@@ -76,7 +79,7 @@ writeSurfaceMesh(mean_mesh_surface, "mean_mesh.ply");
 
 
 % Load the appropriate landmarks file
-load('centroids_landmarks_49.mat');
+load('centroids_landmarks_49_fixed.mat');
 
 % MEAN + LANDMARKS MODEL
 figure;
@@ -103,7 +106,7 @@ end
 
 %% GENERATE SYNTHETIC DATASET
 % Number of samples to generate
-nOfSamples = 5;
+nOfSamples = 1;
 % Chi-squared value for the synthetic data generation
 chi_squared = 0.99; % 0.99
 % Variance for the synthetic data generation

@@ -4,10 +4,10 @@
 %   the averaged landmarks.
 
 % Path to the folder containing the CSV files
-folder_path = '/Users/jocareher/Library/CloudStorage/OneDrive-Personal/Educación/PhD_UPF_2023/babyfm_matlab/landmarks_regions/version_2';
+folder_path = '/Users/jocareher/Library/CloudStorage/OneDrive-Personal/Educación/PhD_UPF_2023/babyfm_matlab/landmarks_regions';
 
 % Output filename
-output_filename = "centroids_landmarks_49";
+output_filename = "additional_landmarks";
 
 % Number of clusters
 k = 49;
@@ -16,7 +16,7 @@ k = 49;
 selection_mode = "centroid";
 
 % Leer el archivo CSV con los vértices iniciales
-initial_vertices = readtable("/Users/jocareher/Library/CloudStorage/OneDrive-Personal/Educación/PhD_UPF_2023/babyfm_matlab/landmarks_regions/initial_vertices.csv");
+initial_vertices = readtable("/Users/jocareher/Library/CloudStorage/OneDrive-Personal/Educación/PhD_UPF_2023/babyfm_matlab/landmarks_regions/landmarks_template.csv");
 
 % Convertir la tabla a un array para obtener las coordenadas de los puntos iniciales
 initial_centroids = table2array(initial_vertices(:, 2:4));
