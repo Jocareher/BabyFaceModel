@@ -1,0 +1,106 @@
+
+
+
+%% Create texture and shape training
+rsp = @(x) reshape(x,[3,length(x)/3]);
+
+addpath(genpath('/Users/jocareher/Library/CloudStorage/OneDrive-Personal/Educación/PhD_UPF_2023/babyfm_matlab/Matlab_utils')) % Replace where with folder where all m files are located
+
+%%% DIRS
+outDir = 'synthetic_images_train/';
+mkdir(outDir)
+model_dir = 'BabyFaceModel.mat'; % Load BabyFM
+model_name = 'BabyFaceModel';
+
+if outDir(end) ~= '/'; outDir = [outDir,'/']; end
+
+load('TextureShapeModelNormalized_symmetric_corrected.mat')
+std_v= TextureShapeModelNormalized.mean_normalization_texture;
+mean_v=TextureShapeModelNormalized.std_normalization_texture;
+mu = TextureShapeModelNormalized.meanTextureShape;
+
+load 'shape_texture_samples_10e4.mat'
+
+% GENERATE SYNTHETIC DATASET
+% nOfSamples = 2e4;
+% chi_squared = 0.95;
+% var = 92;
+nOfModes = find( cumsum(TextureShapeModelNormalized.pctVar_per_eigen) > var,1 );
+
+%%% MODEL LMKS IND
+load(model_dir, model_name)
+eval(['lmks23 = ',model_name,'.landmark_verts;'])
+
+
+%%% CREAD MEAN MESH FROM MODEL TO FIND FRONTAL ROTATION ANGLES
+eval(['meanMesh.verts =',model_name,'.refShape;'])
+eval(['meanMesh.faces = ',model_name,'.triang;'])
+rad_x = -11*pi/180;
+Rx = [1,0,0; 0, cos(rad_x), -sin(rad_x); 0, sin(rad_x), cos(rad_x)];
+meanMesh.verts = Rx*meanMesh.verts;
+
+
+std_v= TextureShapeModelNormalized.mean_normalization_texture;
+mean_v=TextureShapeModelNormalized.std_normalization_texture;
+mu = TextureShapeModelNormalized.meanTextureShape;
+lambda = TextureShapeModelNormalized.lambda;
+eigenVec = TextureShapeModelNormalized.eigenVectors;
+eigenVal = TextureShapeModelNormalized.eigenValues;
+pctVar = TextureShapeModelNormalized.pctVar_per_eigen;
+triang = TextureShapeModelNormalized.triang;
+meanMesh_verts=meanMesh.verts;
+
+save('var_synt_render_new.mat','meanMesh_verts','triang',"pctVar","eigenVal","eigenVec","mu","lmks23",'mean_v','std_v','lambda','Rx','var','chi_squared')
+clearvars(model_name);
+
+for i = 1 : size(b_shape_texture,2)
+    outDir_i = sprintf('%ssynthetic_shape_%05i/',outDir,i);
+
+    if ~exist(outDir_i,'dir'), mkdir(outDir_i); end
+
+    tic;
+%   
+    if exist(sprintf('%ssynthetic_shape_%05i_rightside.jpg',outDir_i,i),'file')
+        fprintf(' -> FOUND\n')
+        continue;
+    end
+    fprintf('\n------------------\n')
+
+
+    %%% RECOVER SHAPE AND TEXTURE
+
+    b = b_shape_texture(:,i);
+    shapetexture = mu + b' * TextureShapeModelNormalized.eigenVectors(:,1:nOfModes)';
+
+    shape = rsp(shapetexture(1:93081));
+    texture = rsp(shapetexture(93081+1:end)./TextureShapeModelNormalized.lambda);
+
+    myShape = shape;
+    triang = TextureShapeModelNormalized.triang;
+
+    myTexture = texture;
+    myTexture =   myTexture.*(mean(std_v) + TextureShapeModelNormalized.epsilon) + mean(mean_v)';
+    myTexture= rescale(myTexture)*255;
+
+    %%% COMPUTE ROTATION ANGLES TO FRONTALISE ORIGINAL MESH
+    [~, ~, transform] = apply_procrustes2lmks(meanMesh.verts(:,lmks23)',myShape(:,lmks23)',myShape);
+    rotAnglesXYZ = rotm2eul(transform.T','XYZ');
+% 
+    figure;
+    mesh_plot( struct('faces',triang,'verts',myShape), myTexture./255);  material([0.9 0.8 0]);
+    figure; mesh_plot( struct('faces',triang,'verts',myShape));material([0.3 0.7 0]); colormap([0.9 0.9 0.9]);
+    %%% GENERATE SYNTHETIC IMAGES
+    good_sizes = false;
+    scale_for_imgSize = 1e-4;
+    while ~good_sizes
+        map = render_images_FLR_modif(false, struct('faces',triang,'verts',myShape), myTexture', rotAnglesXYZ,...
+            'LandmarksF', lmks23, 'LandmarksL', lmks23, 'LandmarksR', lmks23, ...
+            'save_output',outDir_i,sprintf('synthetic_shape_%05i',i), ...% 'verbose',...
+            'scale_for_imgSize', scale_for_imgSize);
+        good_sizes = all(cellfun( @(x) all(size(x,1:2) > 112), {map.image} ));
+        scale_for_imgSize = scale_for_imgSize - 1e-4;
+    end
+
+    fprintf('\t%.2f sec\n',toc)
+
+end
