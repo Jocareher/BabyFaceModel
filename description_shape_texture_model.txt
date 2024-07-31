@@ -1,0 +1,72 @@
+The MAT file 'shape_texture_samples_10e4.mat' contains several fields used to generate the shape and texture samples. Here is an explanation of each field:
+
+1. b_shape_texture
+- A matrix of shape (28, 10000) containing the shape and texture coefficients for 10,000 samples. Each column represents the coefficients for one sample.
+
+2. chi_squared
+- A scalar value (0.95) used in the generation process, likely representing a threshold for the chi-squared distribution.
+
+3. nOfSamples
+- A scalar value (10000) indicating the number of samples in the dataset.
+
+4. var
+- A scalar value (92) indicating the percentage of variance explained by the principal components.
+
+The MAT file 'TextureShapeModelNormalized_symmetric_corrected.mat' contains a structure with the following elements:
+
+1. triang
+- The triangulation information for the 3D model. Each row represents a triangle defined by three vertex indices.
+
+2. landmark_coords
+- Coordinates of the landmarks in the 3D model.
+
+3. landmark_names
+- Names of the landmarks corresponding to the indices in 'landmark_verts'.
+
+4. landmark_verts
+- Indices of the vertices that correspond to specific landmarks on the face.
+
+5. eigenVectors
+- Principal component eigenvectors for the model. Each column represents a deformation mode of the face shape.
+
+6. eigenValues
+- Principal component eigenvalues for the model. They represent the variance explained by each component.
+
+7. meanTextureShape
+- The mean shape and texture vector.
+
+8. pctVar_per_eigen
+- Percentage of variance explained by each principal component.
+
+9. mean_normalization_texture
+- Mean values used for normalizing textures.
+
+10. std_normalization_texture
+- Standard deviation values used for normalizing textures.
+
+11. lambda
+- A scaling factor used in texture normalization.
+
+12. epsilon
+- A small constant used for numerical stability in calculations.
+
+How These Fields are Used in the Main Script:
+
+1. Loading and Normalizing Data:
+- The 'b_shape_texture' matrix from 'shape_texture_samples_10e4.mat' provides the coefficients for reconstructing shape and texture.
+- The 'TextureShapeModelNormalized_symmetric_corrected.mat' file provides the mean, eigenvalues, and eigenvectors necessary for this reconstruction.
+
+2. Reconstructing Shape and Texture:
+- The coefficients from 'b_shape_texture' are combined with the eigenvectors and the mean vector from 'TextureShapeModelNormalized' to reconstruct the synthetic shapes and textures.
+
+3. Generating Synthetic Dataset:
+- The script iterates over each sample, reconstructs the shape and texture, and applies transformations to generate synthetic images.
+
+4. Normalization:
+- The script uses the mean and standard deviation values from 'TextureShapeModelNormalized' to normalize and adjust the textures.
+
+5. Saving Variables:
+- Key variables such as the reconstructed vertices, triangulation, principal components, and landmark vertices are saved for later use.
+
+The process involves reshaping and combining these components to generate and visualize synthetic models.
+
