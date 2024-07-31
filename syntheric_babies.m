@@ -1,4 +1,5 @@
-clear all
+clear all;
+close all;
 
 
 % Define an anonymous function para reshape input to 3xN format

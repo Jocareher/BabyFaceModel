@@ -1,6 +1,7 @@
 %% Create texture and shape training
 % Clear all variables from the workspace
-clear all
+clear all;
+close all;
 
 % Define an anonymous function to reshape matrices into blocks of 3 rows
 rsp = @(x) reshape(x,[3,length(x)/3]);
