@@ -1,6 +1,6 @@
 function map_2Dto3D = render_images_FLR_modif(read_files, x3d_filepath, stereo_img_filepath, rotAnglesXYZ, varargin)
 % render_images_FLR_modif Generates 2D images from a 3D mesh model with various views.
-% 
+%
 % This function takes a 3D mesh model and its corresponding texture to generate synthetic images
 % from different views (frontal, left, right) by applying specified rotations. The function
 % supports options to handle landmark coordinates, scaling, and output file saving.
@@ -23,8 +23,6 @@ function map_2Dto3D = render_images_FLR_modif(read_files, x3d_filepath, stereo_i
 % - map_2Dto3D: Structure array containing information about the generated images,
 %               including file names, image data, and landmark mappings.
 
-
-
 if ~read_files
     % If not reading from files, use the provided mesh and texture data directly
     myMesh = x3d_filepath;
@@ -45,33 +43,47 @@ render = 'FRL';
 % Process additional arguments
 while ~isempty(varargin)
     if strcmpi(varargin{1},'LandmarksF')
-        lmksF = varargin{2}; varargin(1:2) = []; continue;
+        lmksF = varargin{2};
+        varargin(1:2) = [];
+        continue;
     end
     if strcmpi(varargin{1},'LandmarksR')
-        lmksR = varargin{2}; varargin(1:2) = []; continue;
+        lmksR = varargin{2};
+        varargin(1:2) = [];
+        continue;
     end
     if strcmpi(varargin{1},'LandmarksL')
-        lmksL = varargin{2}; varargin(1:2) = []; continue;
+        lmksL = varargin{2};
+        varargin(1:2) = [];
+        continue;
     end
     if strcmpi(varargin{1},'scale_for_imgSize')
-        scale_for_imgSize = varargin{2}; varargin(1:2) = []; continue;
+        scale_for_imgSize = varargin{2};
+        varargin(1:2) = [];
+        continue;
     end
     if strcmp(varargin{1},'save_output')
-        outDir = varargin{2}; outFile = varargin{3}; varargin(1:3) = [];
+        outDir = varargin{2};
+        outFile = varargin{3};
+        varargin(1:3) = [];
         if outDir(end) ~= '/', outDir = [outDir,'/']; end
         continue;
     end
     if strcmp(varargin{1},'render')
-        render = varargin{2}; varargin(1:2) = []; continue;
+        render = varargin{2};
+        varargin(1:2) = [];
+        continue;
     end
     if strcmp(varargin{1},'verbose')
-        verbose = true; varargin(1) = []; continue;
+        verbose = true;
+        varargin(1) = [];
+        continue;
     end
     error('Unexpected input argument.')
 end
 
 % Prepare output file base name
-outFile = strsplit(outFile,'.'); 
+outFile = strsplit(outFile,'.');
 outFile = outFile{1};
 
 % Read and process 3D mesh and texture if necessary
@@ -95,7 +107,7 @@ dist = [0,0,0,0,0]; % Distortion parameters
 % Rotate mesh to frontal view
 deg = 180; rad = deg*pi/180;
 Ry = [cos(rad), 0, sin(rad); 0, 1, 0; -sin(rad), 0, cos(rad)];
-myMesh.verts = Ry*myMesh.verts;    
+myMesh.verts = Ry*myMesh.verts;
 
 % Upsample the mesh if reading from files
 if read_files
@@ -128,6 +140,9 @@ if contains(render,'F')
     else
         imwrite(uint8(img),[outDir, outFile,'_frontal.jpg']);
         if ~isempty(lmksF_img)
+            figure; imshow(uint8(img)); hold on;
+            plot2pts(lmksF_img', '*r');
+            saveas(gcf, [outDir, outFile,'_frontal_with_landmarks.jpg']);
             Write_PTS_Landmarks2D([outDir, outFile,'_frontal.pts'],lmksF_img');
         end
     end
@@ -162,6 +177,9 @@ if contains(render,'L')
     else
         imwrite(uint8(img),[outDir, outFile,'_leftside.jpg']);
         if ~isempty(lmksR_img)
+            figure; imshow(uint8(img)); hold on;
+            plot2pts(lmksR_img', '*r');
+            saveas(gcf, [outDir, outFile,'_leftside_with_landmarks.jpg']);
             Write_PTS_Landmarks2D([outDir, outFile,'_leftside.pts'],lmksR_img');
         end
     end
@@ -192,16 +210,19 @@ if contains(render,'R')
     % Save or display the left-side image
     if isempty(outFile)
         figure; imshow(uint8(img));
-        if ~isempty(lmksL_img), hold on, plot2pts(lmksL_img', '*r'); end % If you stop here, you'll visualize the landmarks
+        if ~isempty(lmksL_img), hold on, plot2pts(lmksL_img', '*r'); end
     else
         imwrite(uint8(img),[outDir, outFile,'_rightside.jpg']);
         if ~isempty(lmksL_img)
-            Write_PTS_Landmarks2D([outDir, outFile,'_rightside.pts'],lmksL_img');  % Use read_pts from landmarks folder
+            figure; imshow(uint8(img)); hold on;
+            plot2pts(lmksL_img', '*r');
+            saveas(gcf, [outDir, outFile,'_rightside_with_landmarks.jpg']);
+            Write_PTS_Landmarks2D([outDir, outFile,'_rightside.pts'],lmksL_img');
         end
     end
 
     % Store the left-side image data
-    map_2Dto3D(2).file = [outDir,outFile,'_rightside.jpg'];
+    map_2Dto3D(2).file = [outDir, outFile,'_rightside.jpg'];
     map_2Dto3D(2).image = img;
     map_2Dto3D(2).map = map;
     map_2Dto3D(2).angle = deg;

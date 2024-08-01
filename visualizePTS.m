@@ -6,7 +6,7 @@ close all;
 addpath(genpath('matlab_utils'))
 
 % Specify the folder containing the .pts files
-folderPath = './synthetic_images_train/synthetic_shape_00001'; % Update this path to your specific folder
+folderPath = '/Users/jocareher/Library/CloudStorage/OneDrive-Personal/Educación/PhD_UPF_2023/babyfm_matlab/synthetic_images_train/Synthetic_shape_00002'; % Update this path to your specific folder
 
 % Get a list of all .pts files in the specified folder
 ptsFiles = dir(fullfile(folderPath, '*.pts'));
@@ -25,7 +25,7 @@ for i = 1:length(ptsFiles)
     title(['Landmarks from: ', ptsFiles(i).name]);
     
     % Plot the landmarks
-    plot(landmarks(1, :), landmarks(2, :), 'ro', 'LineWidth', 2, 'MarkerSize', 5);
+    plot(landmarks(1, :), landmarks(2, :), 'ro', 'MarkerSize', 5, 'MarkerFaceColor', 'r');
     
     % Set plot properties
     xlabel('X');
