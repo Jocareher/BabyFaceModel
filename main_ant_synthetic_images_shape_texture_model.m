@@ -25,25 +25,25 @@ if outDir(end) ~= '/'; outDir = [outDir,'/']; end
 % Load a normalized texture and shape model
 load('TextureShapeModelNormalized_symmetric_corrected.mat')
 % Extract the mean normalization texture value
-std_v= TextureShapeModelNormalized.mean_normalization_texture;
+std_v = TextureShapeModelNormalized.mean_normalization_texture;
 % Extract the standard deviation normalization texture value
-mean_v=TextureShapeModelNormalized.std_normalization_texture;
+mean_v = TextureShapeModelNormalized.std_normalization_texture;
 % Extract the mean texture shape
 mu = TextureShapeModelNormalized.meanTextureShape;
 
 % Load shape and texture samples
-load 'shape_texture_samples_10e4.mat'
+load('shape_texture_samples_10e4.mat')
 
 % Generate synthetic dataset
 % Number of samples
-% nOfSamples = 2e4;
+nOfSamples = 2e4;
 % Chi-squared value 
-% chi_squared = 0.95;
+chi_squared = 0.95;
 % Variance explained
-% var = 92;
+var = 92;
 
 % Find the number of modes needed to explain the desired variance
-nOfModes = find( cumsum(TextureShapeModelNormalized.pctVar_per_eigen) > var,1 );
+nOfModes = find(cumsum(TextureShapeModelNormalized.pctVar_per_eigen) > var, 1);
 
 %%% MODEL LMKS IND
 % Load the model from the .mat file
@@ -61,12 +61,12 @@ rad_x = -11*pi/180;
 % Create a rotation matrix for the X-axis
 Rx = [1,0,0; 0, cos(rad_x), -sin(rad_x); 0, sin(rad_x), cos(rad_x)];
 % Apply the rotation to the vertices of meanMesh
-meanMesh.verts = Rx*meanMesh.verts;
+meanMesh.verts = Rx * meanMesh.verts;
 
 % Reassign the mean normalization texture value
-std_v= TextureShapeModelNormalized.mean_normalization_texture;
+std_v = TextureShapeModelNormalized.mean_normalization_texture;
 % Reassign the standard deviation normalization texture value
-mean_v=TextureShapeModelNormalized.std_normalization_texture;
+mean_v = TextureShapeModelNormalized.std_normalization_texture;
 % Reassign the mean texture shape
 mu = TextureShapeModelNormalized.meanTextureShape;
 % Assign the lambda variable from the model
@@ -80,7 +80,10 @@ pctVar = TextureShapeModelNormalized.pctVar_per_eigen;
 % Assign the triangulation from the model
 triang = TextureShapeModelNormalized.triang;
 % Assign the vertices of the mean mesh
-meanMesh_verts=meanMesh.verts;
+meanMesh_verts = meanMesh.verts;
+
+% Load additional landmarks
+additional_landmarks = load('additional_landmarks.mat').centroids;
 
 % Save the variables into a .mat file
 save('var_synt_render_new.mat','meanMesh_verts','triang',"pctVar","eigenVal","eigenVec","mu","lmks23",'mean_v','std_v','lambda','Rx','var','chi_squared')
@@ -127,7 +130,7 @@ for i = 1 : size(b_shape_texture,2)
     % Adjust the texture with normalization values
     myTexture =   myTexture.*(mean(std_v) + TextureShapeModelNormalized.epsilon) + mean(mean_v)';
     % Rescale the texture to the range [0, 255]
-    myTexture= rescale(myTexture)*255;
+    myTexture = rescale(myTexture)*255;
 
     %%% COMPUTE ROTATION ANGLES TO FRONTALISE ORIGINAL MESH
     % Apply Procrustes to align the mean mesh with the current shape
@@ -143,6 +146,9 @@ for i = 1 : size(b_shape_texture,2)
     % Plot the mesh without texture
     mesh_plot( struct('faces',triang,'verts',myShape)); material([0.3 0.7 0]); colormap([0.9 0.9 0.9]);
 
+    % Prepare the additional landmarks by transforming them using Procrustes
+    additional_landmarks_transformed = (transform.T * additional_landmarks' + transform.c(1,:)')';
+
     %%% GENERATE SYNTHETIC IMAGES
     % Initialize flag for appropriate size
     good_sizes = false;
@@ -152,6 +158,7 @@ for i = 1 : size(b_shape_texture,2)
         % Render synthetic images and save the results
         map = render_images_FLR_modif(false, struct('faces',triang,'verts',myShape), myTexture', rotAnglesXYZ,...
             'LandmarksF', lmks23, 'LandmarksL', lmks23, 'LandmarksR', lmks23, ...
+            'AdditionalLandmarks', additional_landmarks_transformed, ...
             'save_output',outDir_i,sprintf('synthetic_shape_%05i',i), ...% 'verbose',...
             'scale_for_imgSize', scale_for_imgSize);
         % Verify that all images have a size greater than 112x112
