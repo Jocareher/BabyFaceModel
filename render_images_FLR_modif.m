@@ -123,10 +123,10 @@ cam(2,3) = -min(myMesh.verts(2,:));
 tform(3,4) = max(myMesh.verts(3,:))*10;
 
 % Generate frontal view image
-if contains(render,'F')
+if contains(render, 'F')
     if verbose, fprintf('Z-buffering frontal\t'), end
     if ~isempty(lmksF)
-        [~, ~, img, map, lmksF_img] = z_buffering_modif(myMesh.verts, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'Landmarks',lmksF,'verbose');
+        [~, ~, img, map, lmksF_img] = z_buffering_modif(myMesh.verts, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'Landmarks', lmksF, 'verbose');
     else
         [~, ~, img, map] = z_buffering_modif(myMesh.verts, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'verbose');
         lmksF_img = [];
@@ -136,19 +136,38 @@ if contains(render,'F')
     % Save or display the frontal image
     if isempty(outFile)
         figure; imshow(uint8(img));
-        if ~isempty(lmksF_img), hold on, plot2pts(lmksF_img', '*r'); end
+        if ~isempty(lmksF_img)
+            hold on;
+            % Grafica landmarks originales en rojo
+            numOriginalLandmarks = 23;
+            if size(lmksF_img, 1) >= numOriginalLandmarks
+                plot2pts(lmksF_img(1:numOriginalLandmarks, :)', '*r'); % Original landmarks in red
+            end
+            % Grafica landmarks adicionales en azul
+            if size(lmksF_img, 1) > numOriginalLandmarks
+                plot2pts(lmksF_img(numOriginalLandmarks+1:end, :)', '*b'); % Additional landmarks in blue
+            end
+        end
     else
-        imwrite(uint8(img),[outDir, outFile,'_frontal.jpg']);
+        imwrite(uint8(img), [outDir, outFile, '_frontal.jpg']);
         if ~isempty(lmksF_img)
             figure; imshow(uint8(img)); hold on;
-            plot2pts(lmksF_img', '*r');
-            saveas(gcf, [outDir, outFile,'_frontal_with_landmarks.jpg']);
-            Write_PTS_Landmarks2D([outDir, outFile,'_frontal.pts'],lmksF_img');
+            % Grafica landmarks originales en rojo
+            numOriginalLandmarks = 23;
+            if size(lmksF_img, 1) >= numOriginalLandmarks
+                plot2pts(lmksF_img(1:numOriginalLandmarks, :)', '*r'); % Original landmarks in red
+            end
+            % Grafica landmarks adicionales en azul
+            if size(lmksF_img, 1) > numOriginalLandmarks
+                plot2pts(lmksF_img(numOriginalLandmarks+1:end, :)', '*b'); % Additional landmarks in blue
+            end
+            saveas(gcf, [outDir, outFile, '_frontal_with_landmarks.jpg']);
+            Write_PTS_Landmarks2D([outDir, outFile, '_frontal.pts'], lmksF_img');
         end
     end
 
     % Store the frontal image data
-    map_2Dto3D(1).file = [outDir, outFile,'_frontal.jpg'];
+    map_2Dto3D(1).file = [outDir, outFile, '_frontal.jpg'];
     map_2Dto3D(1).image = img;
     map_2Dto3D(1).map = map;
     map_2Dto3D(1).angle = 0;
@@ -156,14 +175,14 @@ if contains(render,'F')
 end
 
 % Generate right-side view image
-if contains(render,'L')
-    deg = -75; rad = deg*pi/180;
+if contains(render, 'R')
+    deg = 75; rad = deg*pi/180;
     Ry = [cos(rad), 0, sin(rad); 0, 1, 0; -sin(rad), 0, cos(rad)];
-    coord_right = Ry*myMesh.verts;
+    coord_right = Ry * myMesh.verts;
 
     if verbose, fprintf('Z-buffering right\t'), end
-    if ~isempty(lmksL)
-        [~, ~, img, map, lmksR_img] = z_buffering_modif(coord_right, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'Landmarks',lmksL,'verbose');
+    if ~isempty(lmksR)
+        [~, ~, img, map, lmksR_img] = z_buffering_modif(coord_right, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'Landmarks', lmksR, 'verbose');
     else
         [~, ~, img, map] = z_buffering_modif(coord_right, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'verbose');
         lmksR_img = [];
@@ -173,34 +192,53 @@ if contains(render,'L')
     % Save or display the right-side image
     if isempty(outFile)
         figure; imshow(uint8(img));
-        if ~isempty(lmksR_img), hold on, plot2pts(lmksR_img', '*r'); end
+        if ~isempty(lmksR_img)
+            hold on;
+            % Grafica landmarks originales en rojo
+            numOriginalLandmarks = 23;
+            if size(lmksR_img, 1) >= numOriginalLandmarks
+                plot2pts(lmksR_img(1:numOriginalLandmarks, :)', '*r'); % Original landmarks in red
+            end
+            % Grafica landmarks adicionales en azul
+            if size(lmksR_img, 1) > numOriginalLandmarks
+                plot2pts(lmksR_img(numOriginalLandmarks+1:end, :)', '*b'); % Additional landmarks in blue
+            end
+        end
     else
-        imwrite(uint8(img),[outDir, outFile,'_leftside.jpg']);
+        imwrite(uint8(img), [outDir, outFile, '_rightside.jpg']);
         if ~isempty(lmksR_img)
             figure; imshow(uint8(img)); hold on;
-            plot2pts(lmksR_img', '*r');
-            saveas(gcf, [outDir, outFile,'_leftside_with_landmarks.jpg']);
-            Write_PTS_Landmarks2D([outDir, outFile,'_leftside.pts'],lmksR_img');
+            % Grafica landmarks originales en rojo
+            numOriginalLandmarks = 23;
+            if size(lmksR_img, 1) >= numOriginalLandmarks
+                plot2pts(lmksR_img(1:numOriginalLandmarks, :)', '*r'); % Original landmarks in red
+            end
+            % Grafica landmarks adicionales en azul
+            if size(lmksR_img, 1) > numOriginalLandmarks
+                plot2pts(lmksR_img(numOriginalLandmarks+1:end, :)', '*b'); % Additional landmarks in blue
+            end
+            saveas(gcf, [outDir, outFile, '_rightside_with_landmarks.jpg']);
+            Write_PTS_Landmarks2D([outDir, outFile, '_rightside.pts'], lmksR_img');
         end
     end
 
     % Store the right-side image data
-    map_2Dto3D(3).file = [outDir, outFile,'_leftside.jpg'];
-    map_2Dto3D(3).image = img;
-    map_2Dto3D(3).map = map;
-    map_2Dto3D(3).angle = deg;
-    map_2Dto3D(3).landmarks = lmksR_img;
+    map_2Dto3D(2).file = [outDir, outFile, '_rightside.jpg'];
+    map_2Dto3D(2).image = img;
+    map_2Dto3D(2).map = map;
+    map_2Dto3D(2).angle = deg;
+    map_2Dto3D(2).landmarks = lmksR_img;
 end
 
 % Generate left-side view image
-if contains(render,'R')
-    deg = 75; rad = deg*pi/180;
+if contains(render, 'L')
+    deg = -75; rad = deg*pi/180;
     Ry = [cos(rad), 0, sin(rad); 0, 1, 0; -sin(rad), 0, cos(rad)];
-    coord_left = Ry*myMesh.verts;
+    coord_left = Ry * myMesh.verts;
 
     if verbose, fprintf('Z-buffering left\t'), end
-    if ~isempty(lmksR)
-        [~, ~, img, map, lmksL_img] = z_buffering_modif(coord_left, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'Landmarks',lmksR,'verbose');
+    if ~isempty(lmksL)
+        [~, ~, img, map, lmksL_img] = z_buffering_modif(coord_left, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'Landmarks', lmksL, 'verbose');
     else
         [~, ~, img, map] = z_buffering_modif(coord_left, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'verbose');
         lmksL_img = [];
@@ -210,22 +248,42 @@ if contains(render,'R')
     % Save or display the left-side image
     if isempty(outFile)
         figure; imshow(uint8(img));
-        if ~isempty(lmksL_img), hold on, plot2pts(lmksL_img', '*r'); end
+        if ~isempty(lmksL_img)
+            hold on;
+            % Graficar landmarks originales en rojo
+            numOriginalLandmarks = 23;
+            if size(lmksL_img, 1) >= numOriginalLandmarks
+                plot2pts(lmksL_img(1:numOriginalLandmarks, :)', '*r'); % Original landmarks in red
+            end
+            % Graficar landmarks adicionales en azul
+            if size(lmksL_img, 1) > numOriginalLandmarks
+                plot2pts(lmksL_img(numOriginalLandmarks+1:end, :)', '*b'); % Additional landmarks in blue
+            end
+        end
     else
-        imwrite(uint8(img),[outDir, outFile,'_rightside.jpg']);
+        imwrite(uint8(img), [outDir, outFile, '_leftside.jpg']);
         if ~isempty(lmksL_img)
             figure; imshow(uint8(img)); hold on;
-            plot2pts(lmksL_img', '*r');
-            saveas(gcf, [outDir, outFile,'_rightside_with_landmarks.jpg']);
-            Write_PTS_Landmarks2D([outDir, outFile,'_rightside.pts'],lmksL_img');
+            % Graficar landmarks originales en rojo
+            if size(lmksL_img, 1) >= numOriginalLandmarks
+                plot2pts(lmksL_img(1:numOriginalLandmarks, :)', '*r'); % Original landmarks in red
+            end
+            % Graficar landmarks adicionales en azul
+            if size(lmksL_img, 1) > numOriginalLandmarks
+                plot2pts(lmksL_img(numOriginalLandmarks+1:end, :)', '*b'); % Additional landmarks in blue
+            end
+            saveas(gcf, [outDir, outFile, '_leftside_with_landmarks.jpg']);
+            Write_PTS_Landmarks2D([outDir, outFile, '_leftside.pts'], lmksL_img');
         end
     end
 
     % Store the left-side image data
-    map_2Dto3D(2).file = [outDir, outFile,'_rightside.jpg'];
-    map_2Dto3D(2).image = img;
-    map_2Dto3D(2).map = map;
-    map_2Dto3D(2).angle = deg;
-    map_2Dto3D(2).landmarks = lmksL_img;
+    map_2Dto3D(3).file = [outDir, outFile, '_leftside.jpg'];
+    map_2Dto3D(3).image = img;
+    map_2Dto3D(3).map = map;
+    map_2Dto3D(3).angle = deg;
+    map_2Dto3D(3).landmarks = lmksL_img;
 end
+
 end
+
