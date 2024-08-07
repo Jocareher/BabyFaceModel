@@ -7,7 +7,7 @@
 folder_path = '/Users/jocareher/Library/CloudStorage/OneDrive-Personal/Educación/PhD_UPF_2023/babyfm_matlab/landmarks_regions';
 
 % Output filename
-output_filename = "additional_landmarks";
+output_filename = "additional_landmarks_new";
 
 % Number of clusters
 k = 49;

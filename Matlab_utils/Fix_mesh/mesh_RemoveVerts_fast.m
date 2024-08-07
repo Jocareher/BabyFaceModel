@@ -4,7 +4,7 @@ v_to_clean = sort(v_to_clean);
 outMesh = mesh_3D;
 
 % Find the faces to which vertices belong
-[vertFaces, vertFaces_N] = mesh_vertexFaces(mesh_3D);
+[vertFaces, vertFaces_N] = mesh_vertexFaces(mesh_3D); % 
 f_to_clean=unique( vertFaces(v_to_clean,:)); % Faces that we want to remove
 non=(f_to_clean==-1); % Delete the -1
 f_to_clean(non) = [];

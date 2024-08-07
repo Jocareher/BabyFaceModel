@@ -88,7 +88,7 @@ for indF = 1:size(faces, 2)
         [L_cols, L_rows] = cartesian2pixel([L_xmax, L_ymax; L_xmin, L_ymin], xl, yd, halfCellX, halfCellY, imgSize);
         [C_L, R_L] = meshgrid(min(L_cols):max(L_cols), min(L_rows):max(L_rows));
 
-        currIndL = find(lmks == currLmkIdx(indL));
+        currIndL = find(lmks == currLmkIdx(indL)); % OJO con esta sección
         for indL2 = 1:length(currIndL)
             if all(lmks_img(currIndL(indL2), :) == [0, 0])
                 lmks_img(currIndL(indL2), :) = [C_L, R_L];
@@ -133,7 +133,7 @@ for indF = 1:size(faces, 2)
             bar_coord_3D = points3D * bar_coord;
             zdepth = bar_coord_3D(3);
 
-            if zdepth < zbuff(r, c)
+            if zdepth < zbuff(r, c) % Revisar esta sección
                 zbuff(r, c) = zdepth;
                 if ~isempty(RGB)
                     colour(r, c, :) = RGB2D' * bar_coord;
@@ -149,6 +149,10 @@ visibleF = unique(visibleF(:)); visibleF(visibleF == 0) = [];
 
 if exist('lmks', 'var') && nargout > 4
     varargout{1} = lmks_img;
+    [lmk_faces,lc] = ismember(faces, lmks); % Con el lc mirar en cuales filas se repite en landmarks, y guardar
+    varargout{2}= ismember(lmk_faces',visibleF); % Recorrer con un for para ver en que vertices se repiten los landmarks, y en donde la suma de 
+    % landmarks es >0, entonce sno es visible.
+    
 end
 
 end

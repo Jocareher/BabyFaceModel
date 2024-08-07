@@ -6,7 +6,7 @@ close all;
 addpath(genpath('matlab_utils'))
 
 % Specify the folder containing the .pts files
-folderPath = '/Users/jocareher/Library/CloudStorage/OneDrive-Personal/Educación/PhD_UPF_2023/babyfm_matlab/synthetic_images_train/Synthetic_shape_00002'; % Update this path to your specific folder
+folderPath = '/Users/jocareher/Downloads/original_code/Synthetic_Images_train/Synthetic_shape_00027'; % Update this path to your specific folder
 
 % Get a list of all .pts files in the specified folder
 ptsFiles = dir(fullfile(folderPath, '*.pts'));

@@ -90,7 +90,7 @@ save('var_synt_render_new.mat','meanMesh_verts','triang',"pctVar","eigenVal","ei
 clearvars(model_name);
 
 % Iterate over the number of shape and texture samples
-for i = 1 : size(b_shape_texture,2)
+for i = 1:size(b_shape_texture,2) %% Provitional %%
     % Define the output directory for the current sample
     outDir_i = sprintf('%ssynthetic_shape_%05i/',outDir,i);
 
