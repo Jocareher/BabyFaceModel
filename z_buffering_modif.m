@@ -128,6 +128,7 @@ for indF = 1:size(faces, 2)
 
         % Compute barycentric coordinates
         bar_coord = inv_ptmatrix * [x; y; 1];
+        %bar_coord = inv_ptmatrix \ [x; y; 1];
 
         if all(bar_coord >= 0) && all(bar_coord <= 1)
             bar_coord_3D = points3D * bar_coord;
@@ -149,7 +150,7 @@ visibleF = unique(visibleF(:)); visibleF(visibleF == 0) = [];
 
 if exist('lmks', 'var') && nargout > 4
     varargout{1} = lmks_img;
-    [lmk_faces,lc] = ismember(faces, lmks); % Con el lc mirar en cuales filas se repite en landmarks, y guardar
+    [lmk_faces,~] = ismember(faces, lmks); % Con el lc mirar en cuales filas se repite en landmarks, y guardar
     varargout{2}= ismember(lmk_faces',visibleF); % Recorrer con un for para ver en que vertices se repiten los landmarks, y en donde la suma de 
     % landmarks es >0, entonce sno es visible.
     
@@ -166,7 +167,7 @@ function [cols, rows] = cartesian2pixel(points2D, xl, yd, halfCellX, halfCellY, 
 end
 
 % Convert pixel indices to 2D Cartesian coordinates
-function [x, y] = pixel2cartesian(rows, cols, xr, yu, halfCellX, halfCellY)
-    x = xr - halfCellX * 2 * (cols - 1);
-    y = yu - halfCellY * 2 * (rows - 1);
-end
+% function [x, y] = pixel2cartesian(rows, cols, xr, yu, halfCellX, halfCellY)
+%     x = xr - halfCellX * 2 * (cols - 1);
+%     y = yu - halfCellY * 2 * (rows - 1);
+% end

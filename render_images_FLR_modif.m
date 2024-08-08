@@ -133,17 +133,17 @@ if contains(render, 'F')  % Check if 'F' is in the render options
     if verbose, fprintf('Z-buffering frontal\t'), end  % Verbose output
     if ~isempty(lmksF)  % Check if frontal landmarks are specified
         % Perform z-buffering with landmarks
-        [~, ~, img, map, lmksF_img] = z_buffering_modif(myMesh.verts, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'Landmarks', lmksF, 'verbose');
+        [~, ~, imgF, mapF, lmksF_img] = z_buffering_modif(myMesh.verts, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'Landmarks', lmksF, 'verbose');
     else
         % Perform z-buffering without landmarks
-        [~, ~, img, map] = z_buffering_modif(myMesh.verts, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'verbose');
+        [~, ~, imgF, mapF] = z_buffering_modif(myMesh.verts, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'verbose');
         lmksF_img = [];  % No landmark images
     end
     if verbose, fprintf('\n'), end  % New line for verbose output
 
     % Save or display the frontal image
     if isempty(outFile)  % Check if no output file is specified
-        figure; imshow(uint8(img));  % Display image
+        figure; imshow(uint8(imgF));  % Display image
         if ~isempty(lmksF_img)  % Check if landmark images exist
             hold on;
             % Plot original landmarks in red
@@ -158,9 +158,9 @@ if contains(render, 'F')  % Check if 'F' is in the render options
         end
     else
         % Save image to specified file
-        imwrite(uint8(img), [outDir, outFile, '_frontal.jpg']);
+        imwrite(uint8(imgF), [outDir, outFile, '_frontal.jpg']);
         if ~isempty(lmksF_img)
-            figure; imshow(uint8(img)); hold on;
+            figure; imshow(uint8(imgF)); hold on;
             % Plot original landmarks in red
             numOriginalLandmarks = 23;  % Number of original landmarks
             if size(lmksF_img, 1) >= numOriginalLandmarks
@@ -179,8 +179,8 @@ if contains(render, 'F')  % Check if 'F' is in the render options
 
     % Store the frontal image data in the output structure
     map_2Dto3D(1).file = [outDir, outFile, '_frontal.jpg'];  % File path
-    map_2Dto3D(1).image = img;  % Image data
-    map_2Dto3D(1).map = map;  % 2D-to-3D map
+    map_2Dto3D(1).image = imgF;  % Image data
+    map_2Dto3D(1).map = mapF;  % 2D-to-3D map
     map_2Dto3D(1).angle = 0;  % Viewing angle
     map_2Dto3D(1).landmarks = lmksF_img;  % Landmarks
 end
@@ -195,17 +195,17 @@ if contains(render, 'R')  % Check if 'R' is in the render options
     if verbose, fprintf('Z-buffering right\t'), end  % Verbose output
     if ~isempty(lmksR)  % Check if right landmarks are specified
         % Perform z-buffering with landmarks for right view
-        [~, ~, img, map, lmksR_img] = z_buffering_modif(coord_right, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'Landmarks', lmksR, 'verbose');
+        [~, ~, imgR, mapR, lmksR_img] = z_buffering_modif(coord_right, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'Landmarks', lmksR, 'verbose');
     else
         % Perform z-buffering without landmarks for right view
-        [~, ~, img, map] = z_buffering_modif(coord_right, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'verbose');
+        [~, ~, imgR, mapR] = z_buffering_modif(coord_right, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'verbose');
         lmksR_img = [];  % No landmark images for right view
     end
     if verbose, fprintf('\n'), end  % New line for verbose output
 
     % Save or display the right-side image
     if isempty(outFile)  % Check if no output file is specified
-        figure; imshow(uint8(img));  % Display image
+        figure; imshow(uint8(imgR));  % Display image
         if ~isempty(lmksR_img)  % Check if landmark images exist
             hold on;
             % Plot original landmarks in red
@@ -220,9 +220,9 @@ if contains(render, 'R')  % Check if 'R' is in the render options
         end
     else
         % Save image to specified file
-        imwrite(uint8(img), [outDir, outFile, '_rightside.jpg']);
+        imwrite(uint8(imgR), [outDir, outFile, '_rightside.jpg']);
         if ~isempty(lmksR_img)
-            figure; imshow(uint8(img)); hold on;
+            figure; imshow(uint8(imgR)); hold on;
             % Plot original landmarks in red
             numOriginalLandmarks = 23;  % Number of original landmarks
             if size(lmksR_img, 1) >= numOriginalLandmarks
@@ -234,14 +234,14 @@ if contains(render, 'R')  % Check if 'R' is in the render options
             end
             saveas(gcf, [outDir, outFile, '_rightside_with_landmarks.jpg']);
             % Save landmarks to a .pts file
-            Write_PTS_Landmarks2D([outDir, outFile, '_rightside.pts'], lmksR_img');
+            Write_PTS_Landmarks2D([outDir, outFile, '_rightside.pts'], lmksR_img'); % Change lmks_R -> Change lmks_L
         end
     end
 
     % Store the right-side image data in the output structure
     map_2Dto3D(2).file = [outDir, outFile, '_rightside.jpg'];  % File path
-    map_2Dto3D(2).image = img;  % Image data
-    map_2Dto3D(2).map = map;  % 2D-to-3D map
+    map_2Dto3D(2).image = imgR;  % Image data
+    map_2Dto3D(2).map = mapR;  % 2D-to-3D map
     map_2Dto3D(2).angle = deg;  % Viewing angle
     map_2Dto3D(2).landmarks = lmksR_img;  % Landmarks
 end
@@ -256,23 +256,23 @@ if contains(render, 'L')  % Check if 'L' is in the render options
     if verbose, fprintf('Z-buffering left\t'), end  % Verbose output
     if ~isempty(lmksL)  % Check if left landmarks are specified
         % Perform z-buffering with landmarks for left view
-        [~, ~, img, map, lmksL_img] = z_buffering_modif(coord_left, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'Landmarks', lmksL, 'verbose');
+        [~, ~, imgL, mapL, lmksL_img] = z_buffering_modif(coord_left, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'Landmarks', lmksL, 'verbose');
     else
         % Perform z-buffering without landmarks for left view
-        [~, ~, img, map] = z_buffering_modif(coord_left, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'verbose');
+        [~, ~, imgL, mapL] = z_buffering_modif(coord_left, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'verbose');
         lmksL_img = [];  % No landmark images for left view
     end
     if verbose, fprintf('\n'), end  % New line for verbose output
 
     % Save or display the left-side image
     if isempty(outFile)  % Check if no output file is specified
-        figure; imshow(uint8(img));  % Display image
+        figure; imshow(uint8(imgL));  % Display image
         if ~isempty(lmksL_img)  % Check if landmark images exist
             hold on;
             % Plot original landmarks in red
             numOriginalLandmarks = 23;  % Number of original landmarks
             if size(lmksL_img, 1) >= numOriginalLandmarks
-                plot2pts(lmksL_img(1:numOriginalLandmarks, :)', '*r');  % Plot in red
+                plot2pts(lmksR_img(1:numOriginalLandmarks, :)', '*r');  % Plot in red
             end
             % Plot additional landmarks in blue
             if size(lmksL_img, 1) > numOriginalLandmarks
@@ -281,9 +281,9 @@ if contains(render, 'L')  % Check if 'L' is in the render options
         end
     else
         % Save image to specified file
-        imwrite(uint8(img), [outDir, outFile, '_leftside.jpg']);
+        imwrite(uint8(imgL), [outDir, outFile, '_leftside.jpg']);
         if ~isempty(lmksL_img)
-            figure; imshow(uint8(img)); hold on;
+            figure; imshow(uint8(imgL)); hold on;
             % Plot original landmarks in red
             numOriginalLandmarks = 23;  % Number of original landmarks
             if size(lmksL_img, 1) >= numOriginalLandmarks
@@ -295,14 +295,14 @@ if contains(render, 'L')  % Check if 'L' is in the render options
             end
             saveas(gcf, [outDir, outFile, '_leftside_with_landmarks.jpg']);
             % Save landmarks to a .pts file
-            Write_PTS_Landmarks2D([outDir, outFile, '_leftside.pts'], lmksL_img');
+            Write_PTS_Landmarks2D([outDir, outFile, '_leftside.pts'], lmksL_img'); % Change lmks_L -> Change lmks_R
         end
     end
 
     % Store the left-side image data in the output structure
     map_2Dto3D(3).file = [outDir, outFile, '_leftside.jpg'];  % Set the file path for the left-side image
-    map_2Dto3D(3).image = img;  % Store the image data
-    map_2Dto3D(3).map = map;  % Store the 2D-to-3D mapping
+    map_2Dto3D(3).image = imgL;  % Store the image data
+    map_2Dto3D(3).map = mapL;  % Store the 2D-to-3D mapping
     map_2Dto3D(3).angle = deg;  % Store the viewing angle used for this image
     map_2Dto3D(3).landmarks = lmksL_img;  % Store the landmarks for the left-side image
 end
