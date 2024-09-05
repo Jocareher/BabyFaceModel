@@ -36,10 +36,12 @@ scale_for_imgSize = 13e-5;  % Default scaling factor for the image size
 lmksF = [];  % Initialize landmarks for frontal view
 lmksR = [];  % Initialize landmarks for right view
 lmksL = [];  % Initialize landmarks for left view
+lmksQL = [];  % Initialize landmarks for quarter left view
+lmksQR = [];  % Initialize landmarks for quarter right view
 outDir = '';  % Initialize output directory string
 outFile = '';  % Initialize output file string
 verbose = false;  % Default verbosity flag
-render = 'FRL';  % Default views to render (Frontal, Right, Left)
+render = 'FRLID';  % Default views to render (Frontal, Right, Left)
 
 % Process additional arguments using varargin
 while ~isempty(varargin)
@@ -59,6 +61,20 @@ while ~isempty(varargin)
         varargin(1:2) = [];
         continue;
     end
+
+    if strcmpi(varargin{1}, 'LandmarksQL')
+        lmksQL = varargin{2};  % Assign quarter left landmarks
+        varargin(1:2) = [];
+        continue;
+    end
+
+    if strcmpi(varargin{1}, 'LandmarksQR')
+        lmksQR = varargin{2};  % Assign quarter left landmarks
+        varargin(1:2) = [];
+        continue;
+    end
+
+
     if strcmpi(varargin{1}, 'scale_for_imgSize')
         scale_for_imgSize = varargin{2};  % Assign custom scale for image size
         varargin(1:2) = [];
@@ -109,7 +125,8 @@ dist = [0, 0, 0, 0, 0];  % Distortion parameters
 
 %%%%%%%%% FRONTAL %%%%%%%%%%
 % Rotate mesh to frontal view
-deg = 180; rad = deg * pi / 180;  % Convert 180 degrees to radians
+deg = 180;
+rad = deg * pi / 180;  % Convert 180 degrees to radians
 Ry = [cos(rad), 0, sin(rad); 0, 1, 0; -sin(rad), 0, cos(rad)];  % Rotation matrix around Y-axis
 myMesh.verts = Ry * myMesh.verts;  % Apply rotation to vertices
 
@@ -272,7 +289,7 @@ if contains(render, 'L')  % Check if 'L' is in the render options
             % Plot original landmarks in red
             numOriginalLandmarks = 23;  % Number of original landmarks
             if size(lmksL_img, 1) >= numOriginalLandmarks
-                plot2pts(lmksR_img(1:numOriginalLandmarks, :)', '*r');  % Plot in red
+                plot2pts(lmksL_img(1:numOriginalLandmarks, :)', '*r');  % Plot in red
             end
             % Plot additional landmarks in blue
             if size(lmksL_img, 1) > numOriginalLandmarks
@@ -307,7 +324,131 @@ if contains(render, 'L')  % Check if 'L' is in the render options
     map_2Dto3D(3).landmarks = lmksL_img;  % Store the landmarks for the left-side image
 end
 
+% Generate quarter left-side view image
+if contains(render, 'I')  % Check if 'I' is in the render options
+    deg = -45;  % Set rotation angle for quarter left view
+    rad = deg * pi / 180;  % Convert angle to radians
+    Ry = [cos(rad), 0, sin(rad); 0, 1, 0; -sin(rad), 0, cos(rad)];  % Rotation matrix for quarter left view
+    coord_qright = Ry * myMesh.verts;  % Rotate mesh for quarter left view
+
+    if verbose, fprintf('Z-buffering left\t'),
+    end  % Verbose output
+    if ~isempty(lmksQL)  % Check if quarter left landmarks are specified
+        % Perform z-buffering with landmarks for quarter left view
+        [~, ~, imgQR, mapQR, lmksQR_img] = z_buffering_modif(coord_qright, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'Landmarks', lmksQL, 'verbose');
+    else
+        % Perform z-buffering without landmarks for quarter left view
+        [~, ~, imgQR, mapQR] = z_buffering_modif(coord_qright, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'verbose');
+        lmksQR_img = [];  % No landmark images for quarter left view
+    end
+    if verbose, fprintf('\n'),
+    end  % New line for verbose output
+
+    % Save or display the quarter left-side image
+    if isempty(outFile)  % Check if no output file is specified
+        figure; imshow(uint8(imgQR));  % Display image
+        if ~isempty(lmksQR_img)  % Check if landmark images exist
+            hold on;
+            % Plot original landmarks in red
+            numOriginalLandmarks = 23;  % Number of original landmarks
+            if size(lmksQR_img, 1) >= numOriginalLandmarks
+                plot2pts(lmksQR_img(1:numOriginalLandmarks, :)', '*r');  % Plot in red
+            end
+            % Plot additional landmarks in blue
+            if size(lmksQR_img, 1) > numOriginalLandmarks
+                plot2pts(lmksQR_img(numOriginalLandmarks+1:end, :)', '*b');  % Plot in blue
+            end
+        end
+    else
+        % Save image to specified file
+        imwrite(uint8(imgQR), [outDir, outFile, '_qleftside.jpg']);
+        if ~isempty(lmksQR_img)
+            figure; imshow(uint8(imgQR)); hold on;
+            % Plot original landmarks in red
+            numOriginalLandmarks = 23;  % Number of original landmarks
+            if size(lmksQR_img, 1) >= numOriginalLandmarks
+                plot2pts(lmksQR_img(1:numOriginalLandmarks, :)', '*r');  % Plot in red
+            end
+            % Plot additional landmarks in blue
+            if size(lmksQR_img, 1) > numOriginalLandmarks
+                plot2pts(lmksQR_img(numOriginalLandmarks+1:end, :)', '*b');  % Plot in blue
+            end
+            saveas(gcf, [outDir, outFile, '_qleftside_with_landmarks.jpg']);
+            % Save landmarks to a .pts file
+            Write_PTS_Landmarks2D([outDir, outFile, '_qleftside.pts'], lmksQR_img');
+        end
+    end
+
+    % Store the quarter left-side image data in the output structure
+    map_2Dto3D(4).file = [outDir, outFile, '_qleftside.jpg'];  % Set the file path for the left-side image
+    map_2Dto3D(4).image = imgQR;  % Store the image data
+    map_2Dto3D(4).map = mapQR;  % Store the 2D-to-3D mapping
+    map_2Dto3D(4).angle = deg;  % Store the viewing angle used for this image
+    map_2Dto3D(4).landmarks = lmksQR_img;  % Store the landmarks for the quarter left-side image
 end
 
+
+% Generate quarter right-side view image
+if contains(render, 'D')  % Check if 'I' is in the render options
+    deg = 45;  % Set rotation angle for quarter left view
+    rad = deg * pi / 180;  % Convert angle to radians
+    Ry = [cos(rad), 0, sin(rad); 0, 1, 0; -sin(rad), 0, cos(rad)];  % Rotation matrix for quarter left view
+    coord_qright = Ry * myMesh.verts;  % Rotate mesh for quarter left view
+
+    if verbose, fprintf('Z-buffering left\t'),
+    end  % Verbose output
+    if ~isempty(lmksQR)  % Check if quarter left landmarks are specified
+        % Perform z-buffering with landmarks for quarter left view
+        [~, ~, imgQR, mapQR, lmksQR_img] = z_buffering_modif(coord_qright, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'Landmarks', lmksQR, 'verbose');
+    else
+        % Perform z-buffering without landmarks for quarter left view
+        [~, ~, imgQR, mapQR] = z_buffering_modif(coord_qright, myMesh.faces, myTexture, cam, tform, dist, 'scale_for_imgSize', scale_for_imgSize, 'verbose');
+        lmksQR_img = [];  % No landmark images for quarter left view
+    end
+    if verbose, fprintf('\n'),
+    end  % New line for verbose output
+
+    % Save or display the quarter left-side image
+    if isempty(outFile)  % Check if no output file is specified
+        figure; imshow(uint8(imgQR));  % Display image
+        if ~isempty(lmksQR_img)  % Check if landmark images exist
+            hold on;
+            % Plot original landmarks in red
+            numOriginalLandmarks = 23;  % Number of original landmarks
+            if size(lmksQR_img, 1) >= numOriginalLandmarks
+                plot2pts(lmksQR_img(1:numOriginalLandmarks, :)', '*r');  % Plot in red
+            end
+            % Plot additional landmarks in blue
+            if size(lmksQR_img, 1) > numOriginalLandmarks
+                plot2pts(lmksQR_img(numOriginalLandmarks+1:end, :)', '*b');  % Plot in blue
+            end
+        end
+    else
+        % Save image to specified file
+        imwrite(uint8(imgQR), [outDir, outFile, '_qrightside.jpg']);
+        if ~isempty(lmksQR_img)
+            figure; imshow(uint8(imgQR)); hold on;
+            % Plot original landmarks in red
+            numOriginalLandmarks = 23;  % Number of original landmarks
+            if size(lmksQR_img, 1) >= numOriginalLandmarks
+                plot2pts(lmksQR_img(1:numOriginalLandmarks, :)', '*r');  % Plot in red
+            end
+            % Plot additional landmarks in blue
+            if size(lmksQR_img, 1) > numOriginalLandmarks
+                plot2pts(lmksQR_img(numOriginalLandmarks+1:end, :)', '*b');  % Plot in blue
+            end
+            saveas(gcf, [outDir, outFile, '_qrightside_with_landmarks.jpg']);
+            % Save landmarks to a .pts file
+            Write_PTS_Landmarks2D([outDir, outFile, '_qrightside.pts'], lmksQR_img');
+        end
+    end
+
+    % Store the quarter left-side image data in the output structure
+    map_2Dto3D(5).file = [outDir, outFile, '_qrightside.jpg'];  % Set the file path for the left-side image
+    map_2Dto3D(5).image = imgQR;  % Store the image data
+    map_2Dto3D(5).map = mapQR;  % Store the 2D-to-3D mapping
+    map_2Dto3D(5).angle = deg;  % Store the viewing angle used for this image
+    map_2Dto3D(5).landmarks = lmksQR_img;  % Store the landmarks for the quarter right-side image
+end
 
            
