@@ -85,7 +85,7 @@ save('var_synt_render_new.mat', 'meanMesh_verts', 'triang', "pctVar", "eigenVal"
 clearvars model_name;
 
 % Iterate over the number of shape and texture samples
-for i =  4 %1:size(b_shape_texture, 2)
+for i = 1:10 %1:size(b_shape_texture, 2)
     % Define the output directory for the current sample
     outDir_i = sprintf('%ssynthetic_shape_%05i/', outDir, i);
 
@@ -98,7 +98,7 @@ for i =  4 %1:size(b_shape_texture, 2)
     tic;
 
     % Check if the image already exists and skip if found
-    if exist(sprintf('%ssynthetic_shape_%05i_rightside.jpg', outDir_i, i), 'file')
+    if exist(sprintf('%ssynthetic_shape_%05i_qrightside.jpg', outDir_i, i), 'file')
         fprintf(' -> FOUND\n')
         continue;
     end

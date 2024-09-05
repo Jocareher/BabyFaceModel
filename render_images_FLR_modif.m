@@ -69,7 +69,7 @@ while ~isempty(varargin)
     end
 
     if strcmpi(varargin{1}, 'LandmarksQR')
-        lmksQR = varargin{2};  % Assign quarter left landmarks
+        lmksQR = varargin{2};  % Assign quarter right landmarks
         varargin(1:2) = [];
         continue;
     end
