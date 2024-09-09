@@ -1,0 +1,96 @@
+function map_2Dto3D = generate_view_image(viewType, myMesh, myTexture, cam, tform, dist, scale_for_imgSize, lmks, outDir, outFile, deg)
+    % Helper function to generate and save images for different views.
+    
+    % Reiniciar los vértices a su posición original antes de rotar
+    originalVerts = myMesh.verts; % Guardamos los vértices originales
+    
+    % Aplicar la rotación adecuada dependiendo del tipo de vista
+    if strcmp(viewType, 'left')
+        % Rotación para la vista izquierda
+        deg = -75;  % Ángulo de rotación
+        rad = deg * pi / 180;  % Convertir grados a radianes
+        Ry = [cos(rad), 0, sin(rad); 0, 1, 0; -sin(rad), 0, cos(rad)];  % Matriz de rotación Y
+        myMesh.verts = Ry * originalVerts;  % Aplicar rotación
+    elseif strcmp(viewType, 'right')
+        % Rotación para la vista derecha
+        deg = 75;  % Ángulo de rotación
+        rad = deg * pi / 180;  % Convertir grados a radianes
+        Ry = [cos(rad), 0, sin(rad); 0, 1, 0; -sin(rad), 0, cos(rad)];  % Matriz de rotación Y
+        myMesh.verts = Ry * originalVerts;  % Aplicar rotación
+    elseif strcmp(viewType, 'frontal')
+        % No aplicar rotación para la vista frontal
+        myMesh.verts = originalVerts;  % Mantener los vértices originales sin rotar
+    end
+
+    % Realizar z-buffering (con o sin landmarks)
+    if ~isempty(lmks)  
+        [~, ~, img, map, lmks_img] = z_buffering_modif(myMesh.verts, myMesh.faces, myTexture, cam, tform, dist, ...
+            'Landmarks', lmks, 'scale_for_imgSize', scale_for_imgSize);
+    else
+        [~, ~, img, map] = z_buffering_modif(myMesh.verts, myMesh.faces, myTexture, cam, tform, dist, ...
+            'scale_for_imgSize', scale_for_imgSize);
+        lmks_img = [];
+    end
+
+% Guardar o mostrar la imagen
+if isempty(outFile)  
+    % Mostrar la imagen sin landmarks
+    figure;
+    imshow(uint8(img));  
+    if ~isempty(lmks_img)  
+        hold on;
+        numOriginalLandmarks = 23;
+        
+        % Graficar landmarks en la misma imagen solo si son válidos
+        if strcmp(viewType, 'frontal') || strcmp(viewType, 'left') || strcmp(viewType, 'right')
+            if size(lmks_img, 1) >= numOriginalLandmarks
+                plot2pts(lmks_img(1:numOriginalLandmarks, :)', '*r');  % Graficar landmarks originales en rojo
+            end
+            if size(lmks_img, 1) > numOriginalLandmarks
+                plot2pts(lmks_img(numOriginalLandmarks+1:end, :)', '*b');  % Graficar landmarks adicionales en azul
+            end
+        end
+    end
+else
+    % Guardar la imagen sin landmarks
+    imwrite(uint8(img), [outDir, outFile, sprintf('_%s.jpg', viewType)]);
+
+    if ~isempty(lmks_img)
+        % Crear nueva figura para la imagen con landmarks
+        figure;
+        imshow(uint8(img));
+        hold on;
+        numOriginalLandmarks = 23;
+
+        % Graficar landmarks solo si son válidos para la vista actual
+        if strcmp(viewType, 'frontal') || strcmp(viewType, 'left') || strcmp(viewType, 'right')
+            if size(lmks_img, 1) >= numOriginalLandmarks
+                plot2pts(lmks_img(1:numOriginalLandmarks, :)', '*r');  % Graficar landmarks originales en rojo
+            end
+            if size(lmks_img, 1) > numOriginalLandmarks
+                plot2pts(lmks_img(numOriginalLandmarks+1:end, :)', '*b');  % Graficar landmarks adicionales en azul
+            end
+        end
+
+        % Guardar la imagen con los landmarks
+        saveas(gcf, [outDir, outFile, sprintf('_%s_with_landmarks.jpg', viewType)]);
+
+        % Guardar los landmarks en un archivo .pts
+        Write_PTS_Landmarks2D([outDir, outFile, sprintf('_%s.pts', viewType)], lmks_img');
+
+        % Cerrar la figura después de guardarla para evitar acumulación
+        close(gcf);
+    end
+end
+
+
+    % Guardar los datos de la imagen en la estructura de salida
+    map_2Dto3D.file = [outDir, outFile, sprintf('_%s.jpg', viewType)];
+    map_2Dto3D.image = img;
+    map_2Dto3D.map = map;
+    map_2Dto3D.angle = deg;
+    map_2Dto3D.landmarks = lmks_img;
+
+    % Restaurar los vértices originales para la siguiente iteración
+    myMesh.verts = originalVerts;
+end

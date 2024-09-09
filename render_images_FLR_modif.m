@@ -148,7 +148,7 @@ tform(3, 4) = max(myMesh.verts(3, :)) * 10;  % Adjust camera z-position
 
 % Generate frontal view image
 if contains(render, 'F')  % Check if 'F' is in the render options
-    map_2Dto3D(1) = generate_view_image('frontal', myMesh, myTexture, cam, tform, dist, scale_for_imgSize, ...
+    map_2Dto3D(1) = generateLandmarksPerView('frontal', myMesh, myTexture, cam, tform, dist, scale_for_imgSize, ...
                                         lmksF, outDir, outFile, 0);
 end
 
@@ -157,7 +157,7 @@ if contains(render, 'R')  % Check if 'R' is in the render options
     % deg = 75;  % Set rotation angle for right view
     % Ry = [cos(deg*pi/180), 0, sin(deg*pi/180); 0, 1, 0; -sin(deg*pi/180), 0, cos(deg*pi/180)];
     % myMesh.verts = Ry * myMesh.verts;  % Rotate mesh for right view
-    map_2Dto3D(2) = generate_view_image('right', myMesh, myTexture, cam, tform, dist, scale_for_imgSize, ...
+    map_2Dto3D(2) = generateLandmarksPerView('right', myMesh, myTexture, cam, tform, dist, scale_for_imgSize, ...
                                         lmksR, outDir, outFile, deg);
 end
 
@@ -166,7 +166,7 @@ if contains(render, 'L')  % Check if 'L' is in the render options
     % deg = -75;  % Set rotation angle for left view
     % Ry = [cos(deg*pi/180), 0, sin(deg*pi/180); 0, 1, 0; -sin(deg*pi/180), 0, cos(deg*pi/180)];
     % myMesh.verts = Ry * myMesh.verts;  % Rotate mesh for left view
-    map_2Dto3D(3) = generate_view_image('left', myMesh, myTexture, cam, tform, dist, scale_for_imgSize, ...
+    map_2Dto3D(3) = generateLandmarksPerView('left', myMesh, myTexture, cam, tform, dist, scale_for_imgSize, ...
                                         lmksL, outDir, outFile, deg);
 end
 
