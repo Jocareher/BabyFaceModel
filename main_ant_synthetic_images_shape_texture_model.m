@@ -85,8 +85,8 @@ save('var_synt_render_new.mat', 'meanMesh_verts', 'triang', "pctVar", "eigenVal"
 clearvars model_name;
 
 % Iterate over the number of shape and texture samples
-for i = 1:10 %1:size(b_shape_texture, 2)
-    % Define the output directory for the current sample
+for i = 6:10r %1:size(b_shape_texture, 2) 
+    % Define the output directory for the current samp
     outDir_i = sprintf('%ssynthetic_shape_%05i/', outDir, i);
 
     % Create the directory if it doesn't exist
@@ -94,7 +94,7 @@ for i = 1:10 %1:size(b_shape_texture, 2)
         mkdir(outDir_i);
     end
 
-    % Start the timer
+    % Start the timern
     tic;
 
     % Check if the image already exists and skip if found
