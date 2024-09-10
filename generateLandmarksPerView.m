@@ -52,7 +52,7 @@ function map_2Dto3D = generateLandmarksPerView(viewType, myMesh, myTexture, cam,
         rad = deg * pi / 180;  % Convert degrees to radians
         Ry = [cos(rad), 0, sin(rad); 0, 1, 0; -sin(rad), 0, cos(rad)];  % Rotation matrix
         myMesh.verts = Ry * originalVerts;  % Apply the rotation
-        end
+    end
 
     % Perform z-buffering projection with or without landmarks
     if ~isempty(lmks)
