@@ -98,7 +98,7 @@ for i = 1:5 %1:size(b_shape_texture, 2)
     tic;
 
     % Check if the image already exists and skip if found
-    if exist(sprintf('%ssynthetic_shape_%05i_qrightside.jpg', outDir_i, i), 'file')
+    if exist(sprintf('%ssynthetic_shape_%05i_quarter_right_with_landmarks.jpg', outDir_i, i), 'file')
         fprintf(' -> FOUND\n')
         continue;
     end
