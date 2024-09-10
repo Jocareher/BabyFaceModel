@@ -41,7 +41,7 @@ lmksQR = [];  % Initialize landmarks for quarter right view
 outDir = '';  % Initialize output directory string
 outFile = '';  % Initialize output file string
 verbose = false;  % Default verbosity flag
-render = 'FRLID';  % Default views to render (Frontal, Right, Left)
+render = 'FRLQ_RQ_L';  % Default views to render (Frontal, Right, Left)
 
 % Process additional arguments using varargin
 while ~isempty(varargin)
@@ -154,22 +154,27 @@ end
 
 % Generate right-side view image
 if contains(render, 'R')  % Check if 'R' is in the render options
-    % deg = 75;  % Set rotation angle for right view
-    % Ry = [cos(deg*pi/180), 0, sin(deg*pi/180); 0, 1, 0; -sin(deg*pi/180), 0, cos(deg*pi/180)];
-    % myMesh.verts = Ry * myMesh.verts;  % Rotate mesh for right view
     map_2Dto3D(2) = generateLandmarksPerView('right', myMesh, myTexture, cam, tform, dist, scale_for_imgSize, ...
                                         lmksR, outDir, outFile, deg);
 end
 
 % Generate left-side view image
 if contains(render, 'L')  % Check if 'L' is in the render options
-    % deg = -75;  % Set rotation angle for left view
-    % Ry = [cos(deg*pi/180), 0, sin(deg*pi/180); 0, 1, 0; -sin(deg*pi/180), 0, cos(deg*pi/180)];
-    % myMesh.verts = Ry * myMesh.verts;  % Rotate mesh for left view
     map_2Dto3D(3) = generateLandmarksPerView('left', myMesh, myTexture, cam, tform, dist, scale_for_imgSize, ...
                                         lmksL, outDir, outFile, deg);
 end
 
+% Generate quarter left-side view image
+if contains(render, 'Q_L')  % Check if 'L' is in the render options
+    map_2Dto3D(4) = generateLandmarksPerView('quarter_left', myMesh, myTexture, cam, tform, dist, scale_for_imgSize, ...
+                                        lmksQL, outDir, outFile, deg);
+end
+
+% Generate quarter right-side view image
+if contains(render, 'Q_R')  % Check if 'L' is in the render options
+    map_2Dto3D(4) = generateLandmarksPerView('quarter_right', myMesh, myTexture, cam, tform, dist, scale_for_imgSize, ...
+                                        lmksQR, outDir, outFile, deg);
+end
 
 % % Generate frontal view image
 % if contains(render, 'F')  % Check if 'F' is in the render options

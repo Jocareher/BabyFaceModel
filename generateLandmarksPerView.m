@@ -40,7 +40,19 @@ function map_2Dto3D = generateLandmarksPerView(viewType, myMesh, myTexture, cam,
         rad = deg * pi / 180;  % Convert degrees to radians
         Ry = [cos(rad), 0, sin(rad); 0, 1, 0; -sin(rad), 0, cos(rad)];  % Rotation matrix
         myMesh.verts = Ry * originalVerts;  % Apply the rotation
-    end
+    elseif strcmp(viewType, 'quarter_right')
+        % Rotation matrix for the quarter-right view (rotate 45 degrees around the Y-axis)
+        deg = 45;
+        rad = deg * pi / 180;  % Convert degrees to radians
+        Ry = [cos(rad), 0, sin(rad); 0, 1, 0; -sin(rad), 0, cos(rad)];  % Rotation matrix
+        myMesh.verts = Ry * originalVerts;  % Apply the rotation
+    elseif strcmp(viewType, 'quarter_left')
+        % Rotation matrix for the quarter-left view (rotate 45 degrees around the Y-axis)
+        deg = -45;
+        rad = deg * pi / 180;  % Convert degrees to radians
+        Ry = [cos(rad), 0, sin(rad); 0, 1, 0; -sin(rad), 0, cos(rad)];  % Rotation matrix
+        myMesh.verts = Ry * originalVerts;  % Apply the rotation
+        end
 
     % Perform z-buffering projection with or without landmarks
     if ~isempty(lmks)
