@@ -174,6 +174,6 @@ end
 
 % Generate quarter right-side view image
 if contains(render, 'Q_R')  % Check if 'L' is in the render options
-    map_2Dto3D(4) = generateLandmarksPerView('quarter_right', myMesh, myTexture, cam, tform, dist, scale_for_imgSize, ...
+    map_2Dto3D(5) = generateLandmarksPerView('quarter_right', myMesh, myTexture, cam, tform, dist, scale_for_imgSize, ...
                                         lmksQR, outDir, outFile, deg);
 end

@@ -1,173 +1,204 @@
 function [visibleF, zbuff, colour, map_2Dto3D, varargout] = z_buffering_modif(coord, faces, RGB, K, T, D, varargin)
-% z_buffering_modif Performs z-buffering to project a 3D mesh onto a 2D image plane.
+% z_buffering_modif Performs z-buffering to project a 3D mesh onto a 2D image plane and computes visibility.
 %
-% This function projects a 3D mesh onto a 2D image plane using z-buffering. It supports
-% camera and transformation matrices, distortion correction, and optional landmark
-% projections. The function returns the visible faces, z-buffer, projected image, and
-% a 2D-to-3D mapping.
+% This function performs a z-buffering algorithm to project a 3D mesh onto a 2D image. It also calculates the visibility 
+% of landmarks based on their depth compared to the z-buffer. The function supports landmark projection and color 
+% rendering.
 %
-% INPUTS:
-% - coord: 3xN matrix, coordinates of the N vertices of the mesh.
-% - faces: 3xM matrix, triangulation of the mesh (M = number of triangles).
-% - RGB: Nx3 matrix, colors in RGB form of the N vertices.
-% - K: 3x3 or 3x4 camera matrix.
-% - T: 4x4 transformation matrix to apply to points before projecting them (default identity matrix).
-% - D: 1xq distortion vector matching OpenCV's implementation [k1, k2, p1, p2, k3], q can be from 1 to 5.
-% - varargin: Additional optional arguments as name-value pairs:
-%     - 'Landmarks': Indices of landmarks to be projected.
-%     - 'verbose': Boolean flag to enable verbose output.
-%     - 'scale_for_imgSize': Scaling factor for the image size.
+% INPUT:
+%   coord           - 3D coordinates of the mesh vertices (N x 3 matrix).
+%   faces           - Indices of the triangles (faces) of the mesh (3 x F matrix).
+%   RGB             - Texture or color data for the mesh (N x 3 matrix).
+%   K               - Camera intrinsic matrix (3 x 3 matrix).
+%   T               - Transformation matrix for 3D coordinates (4 x 4 matrix).
+%   D               - Distortion coefficients for the camera (1 x 5 vector or empty).
+%   varargin        - Optional parameters:
+%                       'Landmarks' - Indices of landmarks (for visibility check).
+%                       'scale_for_imgSize' - Scaling factor for image size.
+%                       'verbose' - Flag for verbosity (boolean).
 %
-% OUTPUTS:
-% - visibleF: Indices of the visible faces in the "faces" input.
-% - zbuff: Z-buffer matrix of depths.
-% - colour: Projected image matrix of projected colors.
-% - map_2Dto3D: Matrix of size imgSize, mapping 2D points to 3D points.
-% - varargout: Optionally returns the 2D coordinates of the landmarks.
-
-verbose = 0; % Initialize verbosity flag
-scale_for_imgSize = 13e-5; % Default scaling factor for image size
-lmks = []; % Initialize landmarks
-
-% Process additional arguments
-while ~isempty(varargin)
-    if strcmp(varargin{1},'Landmarks')
-        lmks = varargin{2};
-        lmks_img = zeros(length(lmks),2);
-        varargin(1:2) = [];
-    elseif strcmp(varargin{1},'verbose')
-        verbose = 1;
-        varargin(1) = [];
-    elseif strcmpi(varargin{1},'scale_for_imgSize')
-        scale_for_imgSize = varargin{2};
-        varargin(1:2) = [];
-    else
-        error('Unexpected input argument.')
-    end
-end
-
-% Project all 3D points to 2D using the provided camera and transformation matrices
-[all_projected, valid] = projectPoints([coord', RGB], K, T, D, [], false);
-
-% Determine the bounds of the projected points
-xl = min(all_projected(valid,1)); xr = max(all_projected(valid,1));
-yd = min(all_projected(valid,2)); yu = max(all_projected(valid,2));
-nRows = (yu - yd) / scale_for_imgSize;
-nCols = (xr - xl) / scale_for_imgSize;
-imgSize = ceil([nRows, nCols]) + [10, 10]; % Add padding to image size
-halfCellX = (xr - xl) / (2 * (imgSize(2) - 1));
-halfCellY = (yu - yd) / (2 * (imgSize(1) - 1));
-
-% Initialize output matrices
-zbuff = Inf * ones(imgSize);
-colour = 255 * ones([imgSize, 3]);
-map_2Dto3D = Inf * ones([imgSize, 3]);
-visibleF = zeros(imgSize);
-
-% Check if any faces contain landmarks
-lmk_faces = ismember(faces, lmks);
-
-% Process each triangle in the faces
-if verbose, fprintf('%3i%%', 0), end
-for indF = 1:size(faces, 2)
-    if verbose, fprintf('\b\b\b\b%3i%%', round(indF / size(faces, 2) * 100)), end
+% OUTPUT:
+%   visibleF        - List of visible faces.
+%   zbuff           - Z-buffer containing the depth values for each pixel.
+%   colour          - RGB image with texture data.
+%   map_2Dto3D      - Map of 2D pixel coordinates to corresponding 3D coordinates.
+%   varargout       - Projected 2D landmark positions and their visibility status (if landmarks are provided).
     
-    % Skip faces with invalid vertices
-    if ~all(valid(faces(:, indF)))
-        continue;
-    end
-    
-    % Handle landmarks within the current triangle
-    currLmkIdx = faces(lmk_faces(:, indF), indF);
-    for indL = 1:length(currLmkIdx)
-        currLmk = all_projected(currLmkIdx(indL), 1:2);
-        L_xmax = min(xr + halfCellX, currLmk(1, 1));
-        L_ymax = min(yu + halfCellY, currLmk(1, 2));
-        L_xmin = max(xl - halfCellX, currLmk(1, 1));
-        L_ymin = max(yd - halfCellY, currLmk(1, 2));
-        [L_cols, L_rows] = cartesian2pixel([L_xmax, L_ymax; L_xmin, L_ymin], xl, yd, halfCellX, halfCellY, imgSize);
-        [C_L, R_L] = meshgrid(min(L_cols):max(L_cols), min(L_rows):max(L_rows));
+    verbose = 0;  % Initialize verbosity flag
+    scale_for_imgSize = 13e-5;  % Default scaling factor for image size
+    lmks = [];  % Initialize landmarks
 
-        currIndL = find(lmks == currLmkIdx(indL)); % OJO con esta sección
-        for indL2 = 1:length(currIndL)
-            if all(lmks_img(currIndL(indL2), :) == [0, 0])
-                lmks_img(currIndL(indL2), :) = [C_L, R_L];
-            else
-                if any(lmks_img(currIndL(indL2), :) ~= [C_L, R_L]), error(''), end
-            end
+    % Process additional arguments
+    while ~isempty(varargin)
+        if strcmp(varargin{1}, 'Landmarks')
+            lmks = varargin{2};  % Assign landmarks if provided
+            varargin(1:2) = [];
+        elseif strcmp(varargin{1}, 'verbose')
+            verbose = 1;  % Enable verbose output
+            varargin(1) = [];
+        elseif strcmpi(varargin{1}, 'scale_for_imgSize')
+            scale_for_imgSize = varargin{2};  % Assign custom scale for image size
+            varargin(1:2) = [];
+        else
+            error('Unexpected input argument.');
         end
     end
-    
-    % Process the current triangle
-    points3D = coord(:, faces(:, indF));
-    if ~isempty(RGB), RGB3D = RGB(faces(:, indF), :); end
-    
-    % Project the 3 vertices of the triangle
-    points2D = all_projected(faces(:, indF), 1:2);
-    if ~isempty(RGB), RGB2D = all_projected(faces(:, indF), 3:5); end
-    
-    % Determine the bounds of the projected triangle
-    P_xmax = max(points2D(:, 1)); P_ymax = max(points2D(:, 2));
-    P_xmin = min(points2D(:, 1)); P_ymin = min(points2D(:, 2));
-    
-    P_xmax = min(xr + halfCellX, P_xmax + 2 * halfCellX);
-    P_ymax = min(yu + halfCellY, P_ymax + 2 * halfCellY);
-    P_xmin = max(xl - halfCellX, P_xmin - 2 * halfCellX);
-    P_ymin = max(yd - halfCellY, P_ymin - 2 * halfCellY);
-    
-    [P_cols, P_rows] = cartesian2pixel([P_xmax, P_ymax; P_xmin, P_ymin], xl, yd, halfCellX, halfCellY, imgSize);
-    [C, R] = meshgrid(min(P_cols):max(P_cols), min(P_rows):max(P_rows));
-    C = C(:); R = R(:);
-    
-    % Process each cell that intersects with the triangle
-    inv_ptmatrix = inv([points2D'; [1, 1, 1]]);
-    for px = 1:size(C, 1)
-        r = R(px); c = C(px);
-        x = xr - halfCellX * 2 * (c - 1);
-        y = yu - halfCellY * 2 * (r - 1);
 
-        % Compute barycentric coordinates
-        bar_coord = inv_ptmatrix * [x; y; 1];
-        %bar_coord = inv_ptmatrix \ [x; y; 1];
+    % Transform all 3D coordinates using the transformation matrix T
+    coord_hom = [coord', ones(size(coord, 2), 1)];  % Convert to homogeneous coordinates (N x 4)
+    coord_transformed = (T * coord_hom')';  % Apply the transformation matrix (N x 4)
+    coord_transformed = coord_transformed(:, 1:3);  % Keep only the first 3 coordinates (N x 3)
 
-        if all(bar_coord >= 0) && all(bar_coord <= 1)
-            bar_coord_3D = points3D * bar_coord;
-            zdepth = bar_coord_3D(3);
+    % Project all 3D points to 2D using the camera intrinsic matrix K
+    [all_projected, valid] = projectPoints([coord_transformed, RGB], K, [], D, [], false);
 
-            if zdepth < zbuff(r, c) % Revisar esta sección
-                zbuff(r, c) = zdepth;
-                if ~isempty(RGB)
-                    colour(r, c, :) = RGB2D' * bar_coord;
+    % Determine the bounds of the projected points
+    xl = min(all_projected(valid, 1));  % Minimum x-coordinate
+    xr = max(all_projected(valid, 1));  % Maximum x-coordinate
+    yd = min(all_projected(valid, 2));  % Minimum y-coordinate
+    yu = max(all_projected(valid, 2));  % Maximum y-coordinate
+    nRows = (yu - yd) / scale_for_imgSize;  % Number of rows in the image
+    nCols = (xr - xl) / scale_for_imgSize;  % Number of columns in the image
+    imgSize = ceil([nRows, nCols]) + [10, 10];  % Add padding to the image size
+    halfCellX = (xr - xl) / (2 * (imgSize(2) - 1));  % Half of the pixel width
+    halfCellY = (yu - yd) / (2 * (imgSize(1) - 1));  % Half of the pixel height
+
+    % Initialize output matrices
+    zbuff = Inf * ones(imgSize);  % Z-buffer to store depth values (initialized to infinity)
+    colour = 255 * ones([imgSize, 3]);  % Image color data (initialized to white)
+    map_2Dto3D = Inf * ones([imgSize, 3]);  % Map from 2D pixels to 3D coordinates
+    visibleF = zeros(imgSize);  % Initialize visible faces matrix
+
+    % Initialize variables for landmarks
+    if ~isempty(lmks)
+        lmks_img = zeros(length(lmks), 2);  % Array to store 2D landmark positions
+        lmk_visibility = false(length(lmks), 1);  % Boolean array for landmark visibility
+        lmks3D = coord(:, lmks)';  % Extract the 3D coordinates of the landmarks (N x 3)
+
+        % Transform the 3D landmarks using the transformation matrix T
+        lmks3D_hom = [lmks3D, ones(length(lmks), 1)];  % Convert landmarks to homogeneous coordinates
+        lmks3D_transformed = (T * lmks3D_hom')';  % Apply transformation
+        lmks3D_transformed = lmks3D_transformed(:, 1:3);  % Extract the transformed 3D coordinates
+
+        % Extract the depth (Z-coordinate) of the transformed landmarks
+        z_lmk = lmks3D_transformed(:, 3);
+
+        % Project the transformed 3D landmarks to 2D using the camera intrinsic matrix K
+        [lmks_projected, lmks_valid] = projectPoints([lmks3D_transformed, zeros(length(lmks), 0)], K, [], D, [], false);
+    end
+
+    % Process each triangle in the mesh (faces)
+    if verbose, fprintf('%3i%%', 0); end  % Print progress if verbosity is enabled
+    for indF = 1:size(faces, 2)
+        if verbose, fprintf('\b\b\b\b%3i%%', round(indF / size(faces, 2) * 100)); end  % Update progress
+
+        % Skip faces with invalid vertices
+        if ~all(valid(faces(:, indF)))
+            continue;
+        end
+
+        % Process the current triangle using transformed coordinates
+        points3D = coord_transformed(faces(:, indF), :)';  % Get the 3D coordinates of the face vertices
+        if ~isempty(RGB), RGB3D = RGB(faces(:, indF), :); end  % Get the RGB values of the vertices (if provided)
+
+        % Get the 2D projections of the triangle vertices
+        points2D = all_projected(faces(:, indF), 1:2);
+        if ~isempty(RGB), RGB2D = all_projected(faces(:, indF), 3:5); end  % Get the RGB projections
+
+        % Determine the bounds of the projected triangle in 2D
+        P_xmax = max(points2D(:, 1)); P_ymax = max(points2D(:, 2));
+        P_xmin = min(points2D(:, 1)); P_ymin = min(points2D(:, 2));
+
+        % Clamp the bounds to the image size
+        P_xmax = min(xr + halfCellX, P_xmax + 2 * halfCellX);
+        P_ymax = min(yu + halfCellY, P_ymax + 2 * halfCellY);
+        P_xmin = max(xl - halfCellX, P_xmin - 2 * halfCellX);
+        P_ymin = max(yd - halfCellY, P_ymin - 2 * halfCellY);
+
+        % Convert the 2D bounds to pixel coordinates
+        [P_cols, P_rows] = cartesian2pixel([P_xmax, P_ymax; P_xmin, P_ymin], xl, yd, halfCellX, halfCellY, imgSize);
+        [C, R] = meshgrid(min(P_cols):max(P_cols), min(P_rows):max(P_rows));  % Generate the pixel grid
+        C = C(:); R = R(:);  % Convert to column vectors
+
+        % Process each pixel inside the triangle
+        inv_ptmatrix = inv([points2D'; [1, 1, 1]]);  % Inverse of the triangle vertex matrix for barycentric coordinates
+        for px = 1:size(C, 1)
+            r = R(px); c = C(px);  % Get the row and column of the pixel
+            x = xr - halfCellX * 2 * (c - 1);  % Compute the pixel's x-coordinate
+            y = yu - halfCellY * 2 * (r - 1);  % Compute the pixel's y-coordinate
+
+            % Compute barycentric coordinates
+            bar_coord = inv_ptmatrix * [x; y; 1];
+
+            % Check if the pixel is inside the triangle
+            if all(bar_coord >= 0) && all(bar_coord <= 1)
+                bar_coord_3D = points3D * bar_coord;  % Interpolate the 3D coordinates
+                zdepth = bar_coord_3D(3);  % Get the depth (Z-coordinate)
+
+                % If the current depth is closer than the Z-buffer value, update the buffers
+                if zdepth < zbuff(r, c)
+                    zbuff(r, c) = zdepth;  % Update the Z-buffer
+                    if ~isempty(RGB)
+                        colour(r, c, :) = RGB2D' * bar_coord;  % Interpolate and update the color
+                    end
+                    map_2Dto3D(r, c, :) = bar_coord_3D;  % Update the 2D-to-3D map
+                    visibleF(r, c) = indF;  % Mark the face as visible
                 end
-                map_2Dto3D(r, c, :) = bar_coord_3D;
-                visibleF(r, c) = indF;
             end
+        end
+    end
+
+    % Remove non-visible faces from the list of visible faces
+    visibleF = unique(visibleF(:)); visibleF(visibleF == 0) = [];
+
+    % Determine the visibility of landmarks based on the Z-buffer
+    if ~isempty(lmks)
+        epsilon = 1e-3;  % Epsilon to account for numerical precision
+        for idx = 1:length(lmks)
+            if ~lmks_valid(idx)
+                continue;  % Skip invalid landmarks
+            end
+
+            % Convert landmark 2D coordinates to pixel indices
+            col = floor(1 + (lmks_projected(idx, 1) - xl + halfCellX) / (2 * halfCellX));
+            row = floor(1 + (lmks_projected(idx, 2) - yd + halfCellY) / (2 * halfCellY));
+            row = imgSize(1) - row + 1;
+            col = imgSize(2) - col + 1;
+
+            % Check if the pixel is within the image bounds
+            if row >= 1 && row <= imgSize(1) && col >= 1 && col <= imgSize(2)
+                z_buffer_value = zbuff(row, col);  % Get the Z-buffer value at the landmark's pixel
+                if isinf(z_buffer_value)
+                    lmk_visibility(idx) = false;  % If the Z-buffer value is infinite, the landmark is not visible
+                    lmks_img(idx, :) = [NaN, NaN];  % Set the landmark's position to NaN
+                    continue;
+                end
+                % Compare the landmark's depth with the Z-buffer value
+                if abs(z_lmk(idx) - z_buffer_value) <= epsilon
+                    lmk_visibility(idx) = true;  % The landmark is visible if its depth is close to the Z-buffer value
+                else
+                    lmk_visibility(idx) = false;  % Otherwise, the landmark is not visible
+                end
+                lmks_img(idx, :) = [col, row];  % Store the landmark's 2D position
+            else
+                % If the landmark projects outside the image bounds, mark it as not visible
+                lmk_visibility(idx) = false;
+                lmks_img(idx, :) = [NaN, NaN];
+            end
+        end
+        % Return the projected landmark positions and visibility if requested
+        if nargout > 4
+            varargout{1} = lmks_img;
+            varargout{2} = lmk_visibility;
         end
     end
 end
 
-visibleF = unique(visibleF(:)); visibleF(visibleF == 0) = [];
-
-if exist('lmks', 'var') && nargout > 4
-    varargout{1} = lmks_img;
-    [lmk_faces,~] = ismember(faces, lmks); % Con el lc mirar en cuales filas se repite en landmarks, y guardar
-    varargout{2}= ismember(lmk_faces',visibleF); % Recorrer con un for para ver en que vertices se repiten los landmarks, y en donde la suma de 
-    % landmarks es >0, entonce sno es visible.
-    
-end
-
-end
-
-% Convert 2D Cartesian coordinates to pixel indices
+% Helper function to convert 2D Cartesian coordinates to pixel indices
 function [cols, rows] = cartesian2pixel(points2D, xl, yd, halfCellX, halfCellY, imgSize)
+    % Convert 2D Cartesian coordinates to pixel indices based on image bounds and scaling
     cols = floor(1 + (points2D(:, 1) - xl + halfCellX) / (2 * halfCellX));
     rows = floor(1 + (points2D(:, 2) - yd + halfCellY) / (2 * halfCellY));
     rows = imgSize(1) - rows + 1;
     cols = imgSize(2) - cols + 1;
 end
-
-% Convert pixel indices to 2D Cartesian coordinates
-% function [x, y] = pixel2cartesian(rows, cols, xr, yu, halfCellX, halfCellY)
-%     x = xr - halfCellX * 2 * (cols - 1);
-%     y = yu - halfCellY * 2 * (rows - 1);
-% end
