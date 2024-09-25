@@ -85,7 +85,7 @@ save('var_synt_render_new.mat', 'meanMesh_verts', 'triang', "pctVar", "eigenVal"
 clearvars model_name;
 
 % Iterate over the number of shape and texture samples
-for i = 5 %1:size(b_shape_texture, 2) 
+for i = 1:30  %1:size(b_shape_texture, 2) 
     % Define the output directory for the current samp
     outDir_i = sprintf('%ssynthetic_shape_%05i/', outDir, i);
 
@@ -108,6 +108,10 @@ for i = 5 %1:size(b_shape_texture, 2)
 
     % Extract the shape and texture coefficients for the current sample
     b = b_shape_texture(:, i);
+    % Set variability factor
+    variabilityFactor = 0.8;
+    % Modify b to generate more variability
+    b = b * variabilityFactor;o
     % Reconstruct the shape and texture from the coefficients and eigenVectors
     shapetexture = mu + b' * TextureShapeModelNormalized.eigenVectors(:, 1:nOfModes)';
 
