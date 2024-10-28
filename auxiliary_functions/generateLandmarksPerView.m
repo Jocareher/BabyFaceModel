@@ -80,7 +80,7 @@ function map_2Dto3D = generateLandmarksPerView(viewType, myMesh, myTexture, cam,
         end
         imwrite(uint8(img), [outDir, outFile, sprintf('_%s.jpg', viewType)]);  % Save image without landmarks
         saveas(figureHandle, [outDir, outFile, sprintf('_%s_with_landmarks.jpg', viewType)]);  % Save image with landmarks
-        Write_PTS_Landmarks2D([outDir, outFile, sprintf('_%s.pts', viewType)], lmks_img');  % Save landmarks in .pts file
+        Write_PTS_Landmarks2D([outDir, outFile, sprintf('_%s.pts', viewType)], lmks_img', lmk_visibility);  % Save landmarks in .pts file
     end
 
     % Close the figure
