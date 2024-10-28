@@ -9,9 +9,15 @@ rsp = @(x) reshape(x,[3,length(x)/3]);
 % Add all subfolders of 'matlab_utils' to the search path
 addpath(genpath('matlab_utils'))
 
+% Add all subfolders of 'auxiliary_functions' to the search path
+addpath(genpath('auxiliary_functions'))
+
+% Add all subfolders of 'mat_files' to the search path
+addpath(genpath('mat_files'))
+
 %%% DIRS
 % Define the output directory for synthetic images
-outDir = 'synthetic_images_train/';
+outDir = '/Users/jocareher/Documents/synthetic_images_train/';
 % Create the output directory if it doesn't exist
 if ~exist(outDir, 'dir')
     mkdir(outDir)
@@ -80,12 +86,12 @@ triang = TextureShapeModelNormalized.triang;
 meanMesh_verts = meanMesh.verts;
 
 % Save the variables into a .mat file
-save('var_synt_render_new.mat', 'meanMesh_verts', 'triang', "pctVar", "eigenVal", "eigenVec", "mu", "lmks", 'mean_v', 'std_v', 'lambda', 'Rx', 'var', 'chi_squared')
+save('./mat_files/var_synt_render_new.mat', 'meanMesh_verts', 'triang', "pctVar", "eigenVal", "eigenVec", "mu", "lmks", 'mean_v', 'std_v', 'lambda', 'Rx', 'var', 'chi_squared')
 % Clear the model_name variable from the workspace
 clearvars model_name;
 
 % Iterate over the number of shape and texture samples
-for i = 1:30  %1:size(b_shape_texture, 2) 
+for i = 1  %1:size(b_shape_texture, 2) 
     % Define the output directory for the current samp
     outDir_i = sprintf('%ssynthetic_shape_%05i/', outDir, i);
 
@@ -109,9 +115,13 @@ for i = 1:30  %1:size(b_shape_texture, 2)
     % Extract the shape and texture coefficients for the current sample
     b = b_shape_texture(:, i);
     % Set variability factor
-    variabilityFactor = 0.8;
+    %variabilityFactor = 1;
     % Modify b to generate more variability
-    b = b * variabilityFactor;o
+    %b = b * variabilityFactor;
+
+    % Extrae solo los primeros nOfModes elementos de b para asegurar la consistencia
+    %b_modificado = b(1:nOfModes);
+
     % Reconstruct the shape and texture from the coefficients and eigenVectors
     shapetexture = mu + b' * TextureShapeModelNormalized.eigenVectors(:, 1:nOfModes)';
 

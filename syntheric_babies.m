@@ -6,8 +6,15 @@ close all;
 rsp = @(x) reshape(x, 3,[]);
 
 % LOAD BABY MODEL
-% Add the path to the Matlab utilities
+% Add all subfolders of 'matlab_utils' to the search path
 addpath(genpath('matlab_utils'))
+
+% Add all subfolders of 'auxiliary_functions' to the search path
+addpath(genpath('auxiliary_functions'))
+
+% Add all subfolders of 'mat_files' to the search path
+addpath(genpath('mat_files'))
+
 % Load the baby face model from a .mat file
 load('BabyFaceModel.mat');
 % Assign the loaded model to a variable
